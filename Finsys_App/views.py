@@ -18321,3 +18321,201 @@ def stockadjToEmail(request,id):
                 print(e)
                 messages.error(request, f'{e}')
                 return redirect(StockAdjustmentOverview, id)
+            
+
+            
+            
+            
+from django.shortcuts import render, redirect
+from .models import Fin_Login_Details, Fin_Company_Details, Fin_Staff_Details, Fin_CreditNote
+
+def Fin_CreditNote_Listout(request):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id=s_id)
+        if data.User_Type == 'Company':
+            com = Fin_Company_Details.objects.get(Login_Id=s_id)
+            credit_notes = Fin_CreditNote.objects.filter(company=com)
+            allmodules = Fin_Modules_List.objects.get(Login_Id = s_id,status = 'New')
+
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id=s_id).company_id
+            credit_notes = Fin_CreditNote.objects.filter(company=com)
+
+        # Export credit notes details to Excel (Implement Excel export logic here if needed)
+
+        # Filter credit notes based on search query
+    
+        # Sort credit notes based on selected option
+        sort_option = request.GET.get('sort', '')
+        if sort_option == 'Name':
+            credit_notes = credit_notes.order_by('customer__customer_name', 'credit_note_number')
+        elif sort_option == 'CRN No':
+            credit_notes = credit_notes.order_by('credit_note_number', 'customer__customer_name')
+
+        # Filter credit notes based on status
+        status_filter = request.GET.get('status', '')
+        if status_filter == 'Draft':
+            credit_notes = credit_notes.filter(status='Draft')
+        elif status_filter == 'Saved':
+            credit_notes = credit_notes.filter(status='Saved')
+
+        context = {
+            
+            'data': data,
+            'credit_notes': credit_notes,
+            'com': com,
+            'allmodules':allmodules,
+        }
+        return render(request, 'company/Fin_CreditNote_Listout.html', context)
+    else:
+        return redirect('login')  # Redirect to login page if session is not available
+           
+            
+from django.shortcuts import render, redirect
+from .models import Fin_Login_Details, Fin_Company_Details, Fin_Staff_Details, Fin_Customers, Fin_Items, Fin_CreditNote, Fin_CreditNote_Items, Fin_CreditNote_Reference, Fin_CreditNote_History
+from django.db import transaction
+from django.http import JsonResponse
+from django.utils import timezone
+
+def Fin_CreditNote_Create(request):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id=s_id)
+        if data.User_Type == 'Company':
+            com = Fin_Company_Details.objects.get(Login_Id=s_id)
+            allmodules = Fin_Modules_List.objects.get(Login_Id = s_id,status = 'New')
+            
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id=s_id).company_id
+            allmodules = Fin_Modules_List.objects.get(Login_Id = s_id,status = 'New')
+        
+        if request.method == 'GET':
+            cust = Fin_Customers.objects.filter(company=com, status='Active')
+            items = Fin_Items.objects.filter(Company=com, status='Active')
+            
+            context = {        
+                'allmodules':allmodules, 'data':data, 'com':com,  'cust':cust, 
+                       
+                'cust': cust,
+                'items': items,
+                'com': com
+            }
+            return render(request, 'company/Fin_CreditNote_Create.html', context)
+        
+        elif request.method == 'POST':
+            # Retrieve POST data
+            customer_id = request.POST.get('customer')
+            invoice_number = request.POST.get('invoice_number')
+            credit_note_number = request.POST.get('credit_note_number')
+            credit_note_date = request.POST.get('credit_note_date')
+            payment_method = request.POST.get('payment_method')
+            cheque_number = request.POST.get('cheque_number', None)
+            upi_number = request.POST.get('upi_number', None)
+            bank_account_number = request.POST.get('bank_account_number', None)
+            description = request.POST.get('description', None)
+            document = request.FILES.get('document', None)
+            shipping_charge = request.POST.get('shipping_charge', 0)
+            adjustment = request.POST.get('adjustment', 0)
+            paid = request.POST.get('paid', 0)
+            customer_note = request.POST.get('customer_note', None)
+            terms_conditions = request.POST.get('terms_conditions', None)
+
+            # Calculate subtotal, tax, grand total, and balance
+            sub_total = 0
+            for key, value in request.POST.items():
+                if key.startswith('quantity_'):
+                    item_id = key.split('_')[1]
+                    quantity = float(value)
+                    item = Fin_Items.objects.get(id=item_id)
+                    sub_total += quantity * item.rate
+
+            # Save credit note details
+            with transaction.atomic():
+                credit_note = Fin_CreditNote.objects.create(
+                    company=com,
+                    login_details=data,
+                    customer_id=customer_id,
+                    invoice_number=invoice_number,
+                    credit_note_number=credit_note_number,
+                    credit_note_date=credit_note_date,
+                    payment_method=payment_method,
+                    cheque_number=cheque_number,
+                    upi_number=upi_number,
+                    bank_account_number=bank_account_number,
+                    description=description,
+                    document=document,
+                    sub_total=sub_total,
+                    shipping_charge=shipping_charge,
+                    adjustment=adjustment,
+                    grand_total=sub_total + shipping_charge + adjustment,
+                    advanced_paid=paid,
+                    balance=sub_total + shipping_charge + adjustment - paid,
+                    status='Draft'  # Initial status is Draft
+                )
+
+                # Save credit note items
+                for key, value in request.POST.items():
+                    if key.startswith('quantity_'):
+                        item_id = key.split('_')[1]
+                        quantity = float(value)
+                        item = Fin_Items.objects.get(id=item_id)
+                        tax_rate = item.gst_tax_rate if com.state == item.state else item.igst_tax_rate
+                        discount = float(request.POST.get(f'discount_{item_id}', 0))
+                        total = (quantity * item.rate) - discount
+
+                        Fin_CreditNote_Items.objects.create(
+                            credit_note=credit_note,
+                            item=item,
+                            hsn=item.hsn,
+                            quantity=quantity,
+                            tax_rate=tax_rate,
+                            discount=discount,
+                            total=total
+                        )
+
+                # Save credit note history
+                Fin_CreditNote_History.objects.create(
+                    company=com,
+                    login_details=data,
+                    credit_note=credit_note,
+                    date=timezone.now(),
+                    action='Created'
+                )
+
+            return redirect('Fin_CreditNote_Listout')  # Redirect to credit notes list page
+    else:
+        return redirect('login')  # Redirect to login page if session is not available
+
+
+
+
+from django.shortcuts import render, redirect
+from .models import Fin_Login_Details, Fin_Company_Details, Fin_Staff_Details, Fin_CreditNote
+
+def Fin_CreditNote_Overview(request, credit_note_id):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id=s_id)
+        if data.User_Type == 'Company':
+            com = Fin_Company_Details.objects.get(Login_Id=s_id)
+            credit_note = Fin_CreditNote.objects.get(id=credit_note_id, company=com)
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id=s_id).company_id
+            credit_note = Fin_CreditNote.objects.get(id=credit_note_id, company=com)
+
+        # Implement logic to handle Convert button functionality
+        if credit_note.status == 'Draft':
+            # Show 'Convert' button and handle logic to change status to 'Saved' when clicked
+            show_convert_button = True
+        else:
+            show_convert_button = False
+
+        context = {
+            'credit_note': credit_note,
+            'show_convert_button': show_convert_button,
+            'company': com
+        }
+        return render(request, 'company/credit_note_overview.html', context)
+    else:
+        return redirect('login')  # Redirect to login page if session is not available

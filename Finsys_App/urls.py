@@ -563,7 +563,28 @@ urlpatterns = [
     path('stock_attachFile/<int:id>',views.stock_attachFile,name='stock_attachFile'),
     path('stockadjToEmail/<int:id>',views.stockadjToEmail,name='stockadjToEmail'),
     
+    path('Fin_CreditNote_Listout',views.Fin_CreditNote_Listout,name='Fin_CreditNote_Listout'),
+    path('Fin_CreditNote_Create',views.Fin_CreditNote_Create,name='Fin_CreditNote_Create'),
+    
+    
+    
+    
+    
+    
     re_path(r'^static/(?P<path>.*)$', serve,{'document_root': settings.STATIC_ROOT}),
+    
+    
+    
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
 ]
 urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
