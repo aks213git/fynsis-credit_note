@@ -18382,29 +18382,35 @@ def Fin_CreditNote_Create(request):
     if 's_id' in request.session:
         s_id = request.session['s_id']
         data = Fin_Login_Details.objects.get(id=s_id)
-        if data.User_Type == 'Company':
+        if data.User_Type == "Company":
             com = Fin_Company_Details.objects.get(Login_Id=s_id)
-            allmodules = Fin_Modules_List.objects.get(Login_Id = s_id,status = 'New')
-            
+            allmodules = Fin_Modules_List.objects.get(Login_Id=s_id, status='New')
+            cmp = com
         else:
-            com = Fin_Staff_Details.objects.get(Login_Id=s_id).company_id
-            allmodules = Fin_Modules_List.objects.get(Login_Id = s_id,status = 'New')
-        
+            com = Fin_Staff_Details.objects.get(Login_Id=s_id)
+            allmodules = Fin_Modules_List.objects.get(company_id=com.company_id, status='New')
+            cmp = com.company_id
+
+        cust = Fin_Customers.objects.filter(Company=cmp, status='Active')
+        items = Fin_Items.objects.filter(Company=cmp, status='Active')
+        trms = Fin_Company_Payment_Terms.objects.filter(Company=cmp)
+        bnk = Fin_Banking.objects.filter(company=cmp)
+        lst = Fin_Price_List.objects.filter(Company=cmp, status='Active')
+        units = Fin_Units.objects.filter(Company=cmp)
+        acc = Fin_Chart_Of_Account.objects.filter(
+            Q(account_type='Expense') | Q(account_type='Other Expense') | Q(account_type='Cost Of Goods Sold'),
+            Company=cmp
+        ).order_by('account_name')
+
         if request.method == 'GET':
-            cust = Fin_Customers.objects.filter(company=com, status='Active')
-            items = Fin_Items.objects.filter(Company=com, status='Active')
-            
-            context = {        
-                'allmodules':allmodules, 'data':data, 'com':com,  'cust':cust, 
-                       
-                'cust': cust,
-                'items': items,
-                'com': com
+            context = {
+                'allmodules': allmodules, 'com': com, 'cmp': cmp, 'data': data,
+                'cust': cust, 'items': items, 'pTerms': trms, 'list': lst,
+                'units': units, 'accounts': acc
             }
             return render(request, 'company/Fin_CreditNote_Create.html', context)
         
         elif request.method == 'POST':
-            # Retrieve POST data
             customer_id = request.POST.get('customer')
             invoice_number = request.POST.get('invoice_number')
             credit_note_number = request.POST.get('credit_note_number')
@@ -18421,7 +18427,6 @@ def Fin_CreditNote_Create(request):
             customer_note = request.POST.get('customer_note', None)
             terms_conditions = request.POST.get('terms_conditions', None)
 
-            # Calculate subtotal, tax, grand total, and balance
             sub_total = 0
             for key, value in request.POST.items():
                 if key.startswith('quantity_'):
@@ -18430,31 +18435,19 @@ def Fin_CreditNote_Create(request):
                     item = Fin_Items.objects.get(id=item_id)
                     sub_total += quantity * item.rate
 
-            # Save credit note details
             with transaction.atomic():
                 credit_note = Fin_CreditNote.objects.create(
-                    company=com,
-                    login_details=data,
-                    customer_id=customer_id,
-                    invoice_number=invoice_number,
-                    credit_note_number=credit_note_number,
-                    credit_note_date=credit_note_date,
-                    payment_method=payment_method,
-                    cheque_number=cheque_number,
-                    upi_number=upi_number,
-                    bank_account_number=bank_account_number,
-                    description=description,
-                    document=document,
-                    sub_total=sub_total,
-                    shipping_charge=shipping_charge,
-                    adjustment=adjustment,
-                    grand_total=sub_total + shipping_charge + adjustment,
-                    advanced_paid=paid,
-                    balance=sub_total + shipping_charge + adjustment - paid,
-                    status='Draft'  # Initial status is Draft
+                    company=com, login_details=data, customer_id=customer_id,
+                    invoice_number=invoice_number, credit_note_number=credit_note_number,
+                    credit_note_date=credit_note_date, payment_method=payment_method,
+                    cheque_number=cheque_number, upi_number=upi_number,
+                    bank_account_number=bank_account_number, description=description,
+                    document=document, sub_total=sub_total, shipping_charge=shipping_charge,
+                    adjustment=adjustment, grand_total=sub_total + shipping_charge + adjustment,
+                    advanced_paid=paid, balance=sub_total + shipping_charge + adjustment - paid,
+                    status='Draft'
                 )
 
-                # Save credit note items
                 for key, value in request.POST.items():
                     if key.startswith('quantity_'):
                         item_id = key.split('_')[1]
@@ -18465,29 +18458,18 @@ def Fin_CreditNote_Create(request):
                         total = (quantity * item.rate) - discount
 
                         Fin_CreditNote_Items.objects.create(
-                            credit_note=credit_note,
-                            item=item,
-                            hsn=item.hsn,
-                            quantity=quantity,
-                            tax_rate=tax_rate,
-                            discount=discount,
-                            total=total
+                            credit_note=credit_note, item=item, hsn=item.hsn,
+                            quantity=quantity, tax_rate=tax_rate, discount=discount, total=total
                         )
 
-                # Save credit note history
                 Fin_CreditNote_History.objects.create(
-                    company=com,
-                    login_details=data,
-                    credit_note=credit_note,
-                    date=timezone.now(),
-                    action='Created'
+                    company=com, login_details=data, credit_note=credit_note,
+                    date=timezone.now(), action='Created'
                 )
 
-            return redirect('Fin_CreditNote_Listout')  # Redirect to credit notes list page
+            return redirect('Fin_CreditNote_Listout')
     else:
-        return redirect('login')  # Redirect to login page if session is not available
-
-
+        return redirect('login')
 
 
 from django.shortcuts import render, redirect
