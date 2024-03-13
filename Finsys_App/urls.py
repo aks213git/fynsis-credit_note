@@ -563,8 +563,13 @@ urlpatterns = [
     path('stock_attachFile/<int:id>',views.stock_attachFile,name='stock_attachFile'),
     path('stockadjToEmail/<int:id>',views.stockadjToEmail,name='stockadjToEmail'),
     
-    path('Fin_CreditNote_Listout',views.Fin_CreditNote_Listout,name='Fin_CreditNote_Listout'),
-    path('Fin_CreditNote_Create',views.Fin_CreditNote_Create,name='Fin_CreditNote_Create'),
+    
+    
+    
+   
+    path('Fin_CreditNotes',views.Fin_CreditNotes, name='Fin_CreditNotes'),
+    path('Fin_Add_CreditNote',views.Fin_Add_CreditNote, name='Fin_Add_CreditNote'),
+    path('Fin_Create_CreditNote',views.Fin_Create_CreditNote, name='Fin_Create_CreditNote'),
     
     
     

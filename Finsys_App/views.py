@@ -18329,7 +18329,7 @@ def stockadjToEmail(request,id):
 from django.shortcuts import render, redirect
 from .models import Fin_Login_Details, Fin_Company_Details, Fin_Staff_Details, Fin_CreditNote
 
-def Fin_CreditNote_Listout(request):
+def Fin_CreditNotes(request):
     if 's_id' in request.session:
         s_id = request.session['s_id']
         data = Fin_Login_Details.objects.get(id=s_id)
@@ -18367,7 +18367,7 @@ def Fin_CreditNote_Listout(request):
             'com': com,
             'allmodules':allmodules,
         }
-        return render(request, 'company/Fin_CreditNote_Listout.html', context)
+        return render(request, 'company/Fin_CreditNotes.html', context)
     else:
         return redirect('login')  # Redirect to login page if session is not available
            
@@ -18378,98 +18378,274 @@ from django.db import transaction
 from django.http import JsonResponse
 from django.utils import timezone
 
-def Fin_CreditNote_Create(request):
+# def Fin_CreditNote_Create(request):
+#     if 's_id' in request.session:
+#         s_id = request.session['s_id']
+#         data = Fin_Login_Details.objects.get(id=s_id)
+#         if data.User_Type == "Company":
+#             com = Fin_Company_Details.objects.get(Login_Id=s_id)
+#             allmodules = Fin_Modules_List.objects.get(Login_Id=s_id, status='New')
+#             cmp = com
+#         else:
+#             com = Fin_Staff_Details.objects.get(Login_Id=s_id)
+#             allmodules = Fin_Modules_List.objects.get(company_id=com.company_id, status='New')
+#             cmp = com.company_id
+
+#         cust = Fin_Customers.objects.filter(Company=cmp, status='Active')
+#         items = Fin_Items.objects.filter(Company=cmp, status='Active')
+#         trms = Fin_Company_Payment_Terms.objects.filter(Company=cmp)
+#         bnk = Fin_Banking.objects.filter(company=cmp)
+#         lst = Fin_Price_List.objects.filter(Company=cmp, status='Active')
+#         units = Fin_Units.objects.filter(Company=cmp)
+#         acc = Fin_Chart_Of_Account.objects.filter(
+#             Q(account_type='Expense') | Q(account_type='Other Expense') | Q(account_type='Cost Of Goods Sold'),
+#             Company=cmp
+#         ).order_by('account_name')
+
+#         if request.method == 'GET':
+#             context = {
+#                 'allmodules': allmodules, 'com': com, 'cmp': cmp, 'data': data,
+#                 'cust': cust, 'items': items, 'pTerms': trms, 'list': lst,
+#                 'units': units, 'accounts': acc
+#             }
+#             return render(request, 'company/Fin_CreditNote_Create.html', context)
+        
+#         elif request.method == 'POST':
+#             customer_id = request.POST.get('customer')
+#             invoice_number = request.POST.get('invoice_number')
+#             credit_note_number = request.POST.get('credit_note_number')
+#             credit_note_date = request.POST.get('credit_note_date')
+#             payment_method = request.POST.get('payment_method')
+#             cheque_number = request.POST.get('cheque_number', None)
+#             upi_number = request.POST.get('upi_number', None)
+#             bank_account_number = request.POST.get('bank_account_number', None)
+#             description = request.POST.get('description', None)
+#             document = request.FILES.get('document', None)
+#             shipping_charge = request.POST.get('shipping_charge', 0)
+#             adjustment = request.POST.get('adjustment', 0)
+#             paid = request.POST.get('paid', 0)
+#             customer_note = request.POST.get('customer_note', None)
+#             terms_conditions = request.POST.get('terms_conditions', None)
+
+#             sub_total = 0
+#             for key, value in request.POST.items():
+#                 if key.startswith('quantity_'):
+#                     item_id = key.split('_')[1]
+#                     quantity = float(value)
+#                     item = Fin_Items.objects.get(id=item_id)
+#                     sub_total += quantity * item.rate
+
+#             with transaction.atomic():
+#                 credit_note = Fin_CreditNote.objects.create(
+#                     company=com, login_details=data, customer_id=customer_id,
+#                     invoice_number=invoice_number, credit_note_number=credit_note_number,
+#                     credit_note_date=credit_note_date, payment_method=payment_method,
+#                     cheque_number=cheque_number, upi_number=upi_number,
+#                     bank_account_number=bank_account_number, description=description,
+#                     document=document, sub_total=sub_total, shipping_charge=shipping_charge,
+#                     adjustment=adjustment, grand_total=sub_total + shipping_charge + adjustment,
+#                     advanced_paid=paid, balance=sub_total + shipping_charge + adjustment - paid,
+#                     status='Draft'
+#                 )
+
+#                 for key, value in request.POST.items():
+#                     if key.startswith('quantity_'):
+#                         item_id = key.split('_')[1]
+#                         quantity = float(value)
+#                         item = Fin_Items.objects.get(id=item_id)
+#                         tax_rate = item.gst_tax_rate if com.state == item.state else item.igst_tax_rate
+#                         discount = float(request.POST.get(f'discount_{item_id}', 0))
+#                         total = (quantity * item.rate) - discount
+
+#                         Fin_CreditNote_Items.objects.create(
+#                             credit_note=credit_note, item=item, hsn=item.hsn,
+#                             quantity=quantity, tax_rate=tax_rate, discount=discount, total=total
+#                         )
+
+#                 Fin_CreditNote_History.objects.create(
+#                     company=com, login_details=data, credit_note=credit_note,
+#                     date=timezone.now(), action='Created'
+#                 )
+
+#             return redirect('Fin_CreditNote_Listout')
+#     else:
+#         return redirect('login')
+
+def Fin_Add_CreditNote(request):
     if 's_id' in request.session:
         s_id = request.session['s_id']
-        data = Fin_Login_Details.objects.get(id=s_id)
+        data = Fin_Login_Details.objects.get(id = s_id)
         if data.User_Type == "Company":
-            com = Fin_Company_Details.objects.get(Login_Id=s_id)
-            allmodules = Fin_Modules_List.objects.get(Login_Id=s_id, status='New')
+            com = Fin_Company_Details.objects.get(Login_Id = s_id)
             cmp = com
         else:
-            com = Fin_Staff_Details.objects.get(Login_Id=s_id)
-            allmodules = Fin_Modules_List.objects.get(company_id=com.company_id, status='New')
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id)
             cmp = com.company_id
 
-        cust = Fin_Customers.objects.filter(Company=cmp, status='Active')
-        items = Fin_Items.objects.filter(Company=cmp, status='Active')
-        trms = Fin_Company_Payment_Terms.objects.filter(Company=cmp)
-        bnk = Fin_Banking.objects.filter(company=cmp)
-        lst = Fin_Price_List.objects.filter(Company=cmp, status='Active')
-        units = Fin_Units.objects.filter(Company=cmp)
-        acc = Fin_Chart_Of_Account.objects.filter(
-            Q(account_type='Expense') | Q(account_type='Other Expense') | Q(account_type='Cost Of Goods Sold'),
-            Company=cmp
-        ).order_by('account_name')
+        allmodules = Fin_Modules_List.objects.get(company_id = cmp,status = 'New')
+        cust = Fin_Customers.objects.filter(Company = cmp, status = 'Active')
+        itms = Fin_Items.objects.filter(Company = cmp, status = 'Active')
+        trms = Fin_Company_Payment_Terms.objects.filter(Company = cmp)
+        lst = Fin_Price_List.objects.filter(Company = cmp, status = 'Active')
+        units = Fin_Units.objects.filter(Company = cmp)
+        acc = Fin_Chart_Of_Account.objects.filter(Q(account_type='Expense') | Q(account_type='Other Expense') | Q(account_type='Cost Of Goods Sold'), Company=cmp).order_by('account_name')
 
-        if request.method == 'GET':
-            context = {
-                'allmodules': allmodules, 'com': com, 'cmp': cmp, 'data': data,
-                'cust': cust, 'items': items, 'pTerms': trms, 'list': lst,
-                'units': units, 'accounts': acc
-            }
-            return render(request, 'company/Fin_CreditNote_Create.html', context)
-        
-        elif request.method == 'POST':
-            customer_id = request.POST.get('customer')
-            invoice_number = request.POST.get('invoice_number')
-            credit_note_number = request.POST.get('credit_note_number')
-            credit_note_date = request.POST.get('credit_note_date')
-            payment_method = request.POST.get('payment_method')
-            cheque_number = request.POST.get('cheque_number', None)
-            upi_number = request.POST.get('upi_number', None)
-            bank_account_number = request.POST.get('bank_account_number', None)
-            description = request.POST.get('description', None)
-            document = request.FILES.get('document', None)
-            shipping_charge = request.POST.get('shipping_charge', 0)
-            adjustment = request.POST.get('adjustment', 0)
-            paid = request.POST.get('paid', 0)
-            customer_note = request.POST.get('customer_note', None)
-            terms_conditions = request.POST.get('terms_conditions', None)
+        # Fetching last CreditNote and assigning upcoming ref no as current + 1
+        # Also check for if any bill is deleted and ref no is continuos w r t the deleted CreditNote
+        latest_est = Fin_CreditNote.objects.filter(Company = cmp).order_by('-id').first()
 
-            sub_total = 0
-            for key, value in request.POST.items():
-                if key.startswith('quantity_'):
-                    item_id = key.split('_')[1]
-                    quantity = float(value)
-                    item = Fin_Items.objects.get(id=item_id)
-                    sub_total += quantity * item.rate
+        new_number = int(latest_est.reference_no) + 1 if latest_est else 1
 
-            with transaction.atomic():
-                credit_note = Fin_CreditNote.objects.create(
-                    company=com, login_details=data, customer_id=customer_id,
-                    invoice_number=invoice_number, credit_note_number=credit_note_number,
-                    credit_note_date=credit_note_date, payment_method=payment_method,
-                    cheque_number=cheque_number, upi_number=upi_number,
-                    bank_account_number=bank_account_number, description=description,
-                    document=document, sub_total=sub_total, shipping_charge=shipping_charge,
-                    adjustment=adjustment, grand_total=sub_total + shipping_charge + adjustment,
-                    advanced_paid=paid, balance=sub_total + shipping_charge + adjustment - paid,
-                    status='Draft'
-                )
+        if Fin_CreditNote_Reference.objects.filter(Company = cmp).exists():
+            deleted = Fin_CreditNote_Reference.objects.get(Company = cmp)
+            
+            if deleted:
+                while int(deleted.reference_no) >= new_number:
+                    new_number+=1
 
-                for key, value in request.POST.items():
-                    if key.startswith('quantity_'):
-                        item_id = key.split('_')[1]
-                        quantity = float(value)
-                        item = Fin_Items.objects.get(id=item_id)
-                        tax_rate = item.gst_tax_rate if com.state == item.state else item.igst_tax_rate
-                        discount = float(request.POST.get(f'discount_{item_id}', 0))
-                        total = (quantity * item.rate) - discount
+        # Finding next CRDN number w r t last CRDN number if exists.
+        nxtCRDN = ""
+        # lastCRDN = Fin_CreditNote.objects.filter(Company = cmp).last()
+        if latest_est:
+            est_no = str(latest_est.creditnote_no)
+            numbers = []
+            stri = []
+            for word in est_no:
+                if word.isdigit():
+                    numbers.append(word)
+                else:
+                    stri.append(word)
+            
+            num=''
+            for i in numbers:
+                num +=i
+            
+            st = ''
+            for j in stri:
+                st = st+j
 
-                        Fin_CreditNote_Items.objects.create(
-                            credit_note=credit_note, item=item, hsn=item.hsn,
-                            quantity=quantity, tax_rate=tax_rate, discount=discount, total=total
-                        )
+            creditnote_num = int(num)+1
 
-                Fin_CreditNote_History.objects.create(
-                    company=com, login_details=data, credit_note=credit_note,
-                    date=timezone.now(), action='Created'
-                )
+            if num[0] == '0':
+                if creditnote_num <10:
+                    nxtCRDN = st+'0'+ str(creditnote_num)
+                else:
+                    nxtCRDN = st+ str(creditnote_num)
+            else:
+                nxtCRDN = st+ str(creditnote_num)
 
-            return redirect('Fin_CreditNote_Listout')
+        context = {
+            'allmodules':allmodules, 'com':com, 'cmp':cmp, 'data':data, 'customers':cust, 'items':itms, 'pTerms':trms,'list':lst,
+            'ref_no':new_number,'CRDNNo':nxtCRDN,'units':units, 'accounts':acc
+        }
+        return render(request,'company/Fin_Add_CreditNote.html',context)
     else:
-        return redirect('login')
+       return redirect('/')
+
+def Fin_Create_CreditNote(request):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == "Company":
+            com = Fin_Company_Details.objects.get(Login_Id = s_id)
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
+
+        if request.method == 'POST':
+            CRDNNo = request.POST['creditnote_no']
+
+            PatternStr = []
+            for word in CRDNNo:
+                if word.isdigit():
+                    pass
+                else:
+                    PatternStr.append(word)
+            
+            pattern = ''
+            for j in PatternStr:
+                pattern += j
+
+            pattern_exists = checkCreditNoteNumberPattern(pattern)
+
+            if pattern !="" and pattern_exists:
+                res = f'<script>alert("CreditNote No. Pattern already Exists.! Try another!");window.history.back();</script>'
+                return HttpResponse(res)
+
+            if Fin_CreditNote.objects.filter(Company = com, creditnote_no__iexact = CRDNNo).exists():
+                res = f'<script>alert("CreditNote Number `{CRDNNo}` already exists, try another!");window.history.back();</script>'
+                return HttpResponse(res)
+
+            CreditNote = Fin_CreditNote(
+                Company = com,
+                LoginDetails = com.Login_Id,
+                Customer = None if request.POST['customerId'] == "" else Fin_Customers.objects.get(id = request.POST['customerId']),
+                customer_email = request.POST['customerEmail'],
+                billing_address = request.POST['bill_address'],
+                gst_type = request.POST['gst_type'],
+                gstin = request.POST['gstin'],
+                place_of_supply = request.POST['place_of_supply'],
+                reference_no = request.POST['reference_number'],
+                creditnote_no = CRDNNo,
+                payment_terms = Fin_Company_Payment_Terms.objects.get(id = request.POST['payment_term']),
+                creditnote_date = request.POST['creditnote_date'],
+                exp_date = datetime.strptime(request.POST['exp_date'], '%d-%m-%Y').date(),
+                subtotal = 0.0 if request.POST['subtotal'] == "" else float(request.POST['subtotal']),
+                igst = 0.0 if request.POST['igst'] == "" else float(request.POST['igst']),
+                cgst = 0.0 if request.POST['cgst'] == "" else float(request.POST['cgst']),
+                sgst = 0.0 if request.POST['sgst'] == "" else float(request.POST['sgst']),
+                tax_amount = 0.0 if request.POST['taxamount'] == "" else float(request.POST['taxamount']),
+                adjustment = 0.0 if request.POST['adj'] == "" else float(request.POST['adj']),
+                shipping_charge = 0.0 if request.POST['ship'] == "" else float(request.POST['ship']),
+                grandtotal = 0.0 if request.POST['grandtotal'] == "" else float(request.POST['grandtotal']),
+                note = request.POST['note']
+            )
+
+            CreditNote.save()
+
+            if len(request.FILES) != 0:
+                CreditNote.file=request.FILES.get('file')
+            CreditNote.save()
+
+            if 'Draft' in request.POST:
+                CreditNote.status = "Draft"
+            elif "Save" in request.POST:
+                CreditNote.status = "Saved" 
+            CreditNote.save()
+
+            # Save CreditNote items.
+
+            itemId = request.POST.getlist("item_id[]")
+            itemName = request.POST.getlist("item_name[]")
+            hsn  = request.POST.getlist("hsn[]")
+            qty = request.POST.getlist("qty[]")
+            price = request.POST.getlist("price[]")
+            tax = request.POST.getlist("taxGST[]") if request.POST['place_of_supply'] == com.State else request.POST.getlist("taxIGST[]")
+            discount = request.POST.getlist("discount[]")
+            total = request.POST.getlist("total[]")
+
+            if len(itemId)==len(itemName)==len(hsn)==len(qty)==len(price)==len(tax)==len(discount)==len(total) and itemId and itemName and hsn and qty and price and tax and discount and total:
+                mapped = zip(itemId,itemName,hsn,qty,price,tax,discount,total)
+                mapped = list(mapped)
+                for ele in mapped:
+                    itm = Fin_Items.objects.get(id = int(ele[0]))
+                    Fin_CreditNote_Items.objects.create(CreditNote = CreditNote, Item = itm, hsn = ele[2], quantity = int(ele[3]), price = float(ele[4]), tax = ele[5], discount = float(ele[6]), total = float(ele[7]))
+                    # itm.current_stock -= int(ele[3])
+                    # itm.save()
+            
+            # Save transaction
+                    
+            Fin_CreditNote_History.objects.create(
+                Company = com,
+                LoginDetails = data,
+                CreditNote = CreditNote,
+                action = 'Created'
+            )
+
+            return redirect(Fin_CreditNotes)
+        else:
+            return redirect(Fin_Add_CreditNote)
+    else:
+       return redirect('/')
 
 
 from django.shortcuts import render, redirect
