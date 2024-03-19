@@ -19019,7 +19019,7 @@ def Fin_deleteCreditNote(request, id):
         crdn.delete()
         return redirect(Fin_creditnotes)
 
-def Fin_creditnotePdf(request,id):
+def Fin_CreditNote_Pdf(request,id):
     if 's_id' in request.session:
         s_id = request.session['s_id']
         data = Fin_Login_Details.objects.get(id = s_id)
@@ -19106,4 +19106,50 @@ def Fin_attachCreditNoteFile(request, id):
         return redirect(Fin_CreditNote_Overview, id)
     else:
         return redirect('/')
+    
+def Fin_creditNote_History(request,id):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+
+        if data.User_Type == "Company":
+            com = Fin_Company_Details.objects.get(Login_Id = s_id)
+            cmp = com
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id)
+            cmp = com.company_id
+        
+        allmodules = Fin_Modules_List.objects.get(company_id = cmp,status = 'New')
+        crdn = Fin_CreditNote.objects.get(id = id)
+        his = Fin_CreditNote_History.objects.filter(CreditNote = crdn)
+
+        return render(request,'company/Fin_CreditNote_History.html',{'allmodules':allmodules,'com':com,'data':data,'history':his, 'creditnote':crdn})
+    else:
+       return redirect('/')
+    
+def Fin_deleteCreditNote(request, id):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        crdn = Fin_CreditNote.objects.get( id = id)
+        if data.User_Type == "Company":
+            com = Fin_Company_Details.objects.get(Login_Id = s_id)
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
+        
+        Fin_CreditNote_Items.objects.filter(CreditNote = crdn).delete()
+
+        # Storing ref number to deleted table
+        # if entry exists and lesser than the current, update and save => Only one entry per company
+        if Fin_CreditNote_Reference.objects.filter(Company = com).exists():
+            deleted = Fin_CreditNote_Reference.objects.get(Company = com)
+            if int(crdn.reference_no) > int(deleted.reference_no):
+                deleted.reference_no = crdn.reference_no
+                deleted.save()
+        else:
+            Fin_CreditNote_Reference.objects.create(Company = com, reference_no = crdn.reference_no)
+        
+        crdn.delete()
+        return redirect(Fin_creditnotes)
+
 
