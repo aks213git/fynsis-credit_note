@@ -34,7 +34,7 @@
                       <div class="dropdown-menu" style="background-color: black">
                         <a class="dropdown-item" href="" style="height: 40px; font-size: 15px; color: white">All</a>
                         <a class="dropdown-item" style="height: 40px; font-size: 15px; color: white;cursor: pointer;" onclick="sortTable(3)">Customer Name</a>
-                        <a class="dropdown-item" style="height: 40px; font-size: 15px; color: white;cursor: pointer;" onclick="sortTable(2)">Invoice Number</a>
+                        <a class="dropdown-item" style="height: 40px; font-size: 15px; color: white;cursor: pointer;" onclick="sortTable(2)">Credit Note Number</a>
                       </div>
                     </div>
                   </div>
@@ -55,7 +55,7 @@
                 </div>
               </div>
             <div class="container-fluid">
-                <table class="table table-responsive-md mt-4" id="creditnotetable">
+                <table class="table table-responsive-md mt-4" id="creditnoteTable">
                     <thead>
                         <tr class="text-center">
                             <th>#</th>
@@ -69,19 +69,21 @@
                         </tr>
                     </thead>
                     <tbody>
-                        {% for credit_note in credit_notes %}
-                        <tr class="clickable-row text-center" data-href="/Fin_CreditNote_Overview/{{ credit_note.id }}">
-                            <td>{{ forloop.counter }}</td>
-                            <td>{{ credit_note.credit_note_date | date:'d-m-Y' }}</td>
-                            <td>{{ credit_note.credit_note_number }}</a></td>
-                            <th class="text-capitalize">{{ credit_note.customer.customer_name }}</th>
-                            <td>{{ credit_note.customer_email }}</td>
-                            <td>{{ credit_note.grand_total }}</td>
-                            <td>{{ credit_note.status }}</td>
-                            <td>{{ credit_note.balance }}</td>
+                        {% for a in creditnotes %}
+                        <tr class="clickable-row" data-href="{% url 'Fin_CreditNote_Overview' a.id %}" style="cursor: pointer;text-align: center">
+                          <td>{{ forloop.counter }}</td>
+                          <td>{{ a.creditnote_date }}</td>
+                          <td>{{ a.creditnote_no }}</td>
+                          <td>{{ a.Customer.first_name }} {{ a.Customer.last_name }}</td>
+                          <td>{{ a.customer_email}}</td>
+                          <td>{{ a.grandtotal }}</td>
+                          <td>{{ a.status }}</td>
+                          <td>{{ a.balance }}</td>
+                          
                         </tr>
                         {% endfor %}
-                    </tbody>
+                        
+                      </tbody>
                     
                 </table>
             </div>
@@ -89,76 +91,96 @@
     </div>
 </div>
 
-<!-- Search Table -->
-<script>
-    $(document).ready(function () {
-        var $rows = $('#creditnotetable tbody tr');
-        $('#search').keyup(function () {
-            var val = $.trim($(this).val()).replace(/ +/g, ' ').toLowerCase();
-            $rows.show().filter(function () {
-                var text = $(this).text().replace(/\s+/g, ' ').toLowerCase();
-                return !~text.indexOf(val);
-            }).hide();
-        });
-    });
-</script>
 
-<!-- Export To Excel -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.16.9/xlsx.full.min.js"></script>
 <script>
-    document.getElementById("exportBtn").addEventListener("click", function () {
-        const Table = document.getElementById("creditnotetable");
-        const ws = XLSX.utils.table_to_sheet(Table);
-        const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
-        XLSX.writeFile(wb, "creditnote..xlsx");
-    });
-</script>
+  var $rows = $('#creditnoteTable tbody tr');
+  $('#search').keyup(function() {
+    var val = $.trim($(this).val()).replace(/ +/g, ' ').toLowerCase();
+    
+    $rows.show().filter(function() {
+      var text = $(this).text().replace(/\s+/g, ' ').toLowerCase();
+      return !~text.indexOf(val);
+    }).hide();
+  });
+  
+  document.getElementById("exportBtn").addEventListener("click", function () {
+    const Table = document.getElementById("creditnoteTableExport");
+    const ws = XLSX.utils.table_to_sheet(Table);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
+    XLSX.writeFile(wb, "creditnote.xlsx");
+  });
 
-<!-- Sort Table -->
-<script>
-    function sorttable(col) {
-        var table, rows, switching, i, x, y, shouldSwitch;
-        table = document.getElementById("creditnotetable");
+  jQuery(document).ready(function ($) {
+    $(".clickable-row").dblclick(function () {
+      window.location = $(this).data("href");
+    });
+  });
+
+  function sortTable(columnIndex) {
+    var table, rows, switching, i, x, y, shouldSwitch;
+    table = document.getElementById("creditnoteTable");
+    switching = true;
+
+    while (switching) {
+      switching = false;
+      rows = table.rows;
+
+      for (i = 1; i < (rows.length - 1); i++) {
+        shouldSwitch = false;
+        x = rows[i].getElementsByTagName("td")[columnIndex].textContent.toLowerCase();
+        y = rows[i + 1].getElementsByTagName("td")[columnIndex].textContent.toLowerCase();
+
+        if (x > y) {
+            shouldSwitch = true;
+            break;
+        }
+      }
+
+      if (shouldSwitch) {
+        rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
         switching = true;
-        while (switching) {
-            switching = false;
-            rows = table.rows;
-            for (i = 1; i < (rows.length - 1); i++) {
-                shouldSwitch = false;
-                x = rows[i].getElementsByTagName("td")[col].textContent.toLowerCase();
-                y = rows[i + 1].getElementsByTagName("td")[col].textContent.toLowerCase();
-                if (x > y) {
-                    shouldSwitch = true;
-                    break;
-                }
-            }
-            if (shouldSwitch) {
-                rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
-                switching = true;
-            }
-        }
+      }
     }
+  }
+
+  function filterTable(row,filterValue) {
+    var table1 = document.getElementById("creditnoteTable");
+    var rows1 = table1.getElementsByTagName("tr");
+
+    for (var i = 1; i < rows1.length; i++) {
+      var statusCell = rows1[i].getElementsByTagName("td")[row];
+
+      if (filterValue == "all" || statusCell.textContent.toLowerCase() == filterValue) {
+        rows1[i].style.display = "";
+      } else {
+        rows1[i].style.display = "none";
+      }
+    }
+
+    var table2 = document.getElementById("creditnoteTableExport");
+    var rows2 = table2.getElementsByTagName("tr");
+
+    for (var i = 1; i < rows2.length; i++) {
+      var statusCell = rows2[i].getElementsByTagName("td")[row];
+
+      if (filterValue == "all" || statusCell.textContent.toLowerCase() == filterValue) {
+        rows2[i].style.display = "";
+      } else {
+        rows2[i].style.display = "none";
+      }
+    }
+  }
+  document.getElementById("exportBtn").addEventListener("click", function () {
+    const Table = document.getElementById("creditnoteTable");
+    const ws = XLSX.utils.table_to_sheet(Table);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
+    XLSX.writeFile(wb, "creditnote..xlsx");
+});
 </script>
 
-<!-- Filter Table -->
-<script>
-    function filtertable(key) {
-        var input, filter, table, tr, td, i, txtValue;
-        table = document.getElementById("creditnotetable");
-        tr = table.getElementsByTagName("tr");
-        for (i = 0; i < tr.length; i++) {
-            td = tr[i].getElementsByTagName("td")[5];
-            if (td) {
-                txtValue = td.textContent || td.innerText;
-                if (txtValue.toUpperCase() == key.toUpperCase()) {
-                    tr[i].style.display = "";
-                } else {
-                    tr[i].style.display = "none";
-                }
-            }
-        }
-    }
-</script>
 
 <!-- Go to View Page -->
 <script>

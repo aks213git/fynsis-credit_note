@@ -570,6 +570,23 @@ urlpatterns = [
     path('Fin_CreditNotes',views.Fin_CreditNotes, name='Fin_CreditNotes'),
     path('Fin_Add_CreditNote',views.Fin_Add_CreditNote, name='Fin_Add_CreditNote'),
     path('Fin_Create_CreditNote',views.Fin_Create_CreditNote, name='Fin_Create_CreditNote'),
+    path('Fin_CreditNote_Overview/<int:id>',views.Fin_CreditNote_Overview, name='Fin_CreditNote_Overview'),
+    path('Fin_editCreditNote/<int:id>',views.Fin_editCreditNote, name='Fin_editCreditNote'),
+    path('Fin_updateCreditNote/<int:id>',views.Fin_updateCreditNote, name='Fin_updateCreditNote'),
+    
+    
+    path('Fin_convert_CreditNote/<int:id>',views.Fin_convert_CreditNote, name='Fin_convert_CreditNote'),
+
+    path('Fin_addCreditNoteComment/<int:id>',views.Fin_addCreditNoteComment, name='Fin_addCreditNoteComment'),
+    path('Fin_deleteCreditNoteComment/<int:id>',views.Fin_deleteCreditNoteComment, name='Fin_deleteCreditNoteComment'),
+    path('Fin_creditnoteHistory/<int:id>',views.Fin_creditnoteHistory, name='Fin_creditnoteHistory'),
+    path('Fin_deleteCreditNote/<int:id>',views.Fin_deleteCreditNote, name='Fin_deleteCreditNote'),
+    path('Fin_creditnotePdf/<int:id>',views.Fin_creditnotePdf, name='Fin_creditnotePdf'),
+    path('Fin_shareCreditNoteToEmail/<int:id>',views.Fin_shareCreditNoteToEmail, name='Fin_shareCreditNoteToEmail'),
+    path('Fin_attachCreditNoteFile/<int:id>',views.Fin_attachCreditNoteFile, name='Fin_attachCreditNoteFile'),
+    
+    path('Fin_checkCreditNoteNumber',views.Fin_checkCreditNoteNumber, name='Fin_checkCreditNoteNumber'),
+
     
     
     

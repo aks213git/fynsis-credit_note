@@ -1590,67 +1590,82 @@ class Stock_Adjustment_RefNo(models.Model):
     reference_no = models.BigIntegerField(null = False, blank=False)
     
     
-    
 class Fin_CreditNote(models.Model):
-    company = models.ForeignKey('Fin_Company_Details', on_delete=models.CASCADE,null=True,blank=True)
-    login_details = models.ForeignKey('Fin_Login_Details', on_delete=models.CASCADE,null=True,blank=True)
-    customer = models.ForeignKey('Fin_Customers', on_delete=models.CASCADE,null=True,blank=True)
+    Company = models.ForeignKey(Fin_Company_Details, on_delete=models.CASCADE, null=True)
+    LoginDetails = models.ForeignKey(Fin_Login_Details, on_delete=models.CASCADE, null=True)
+    Customer = models.ForeignKey(Fin_Customers, on_delete=models.CASCADE, null=True)
     customer_email = models.EmailField(null=True,blank=True)
-    customer_billing_address = models.CharField(max_length=255,null=True,blank=True)
-    customer_gst_type = models.CharField(max_length=50,null=True,blank=True)
-    customer_gst_number = models.CharField(max_length=50,null=True,blank=True)
-    customer_place_of_supply = models.CharField(max_length=50,null=True,blank=True)
-    credit_note_date = models.DateField(null=True,blank=True)
+    billing_address = models.CharField(max_length=255,null=True,blank=True)
+    gst_type = models.CharField(max_length=50,null=True,blank=True)
+    gstin = models.CharField(max_length=50,null=True,blank=True)
+    place_of_supply = models.CharField(max_length=50,null=True,blank=True)
+    reference_no = models.IntegerField(null=True, blank=True)
+    creditnote_date = models.DateField(null=True,blank=True)
     invoice_type = models.CharField(max_length=50,null=True,blank=True)
-    invoice = models.ForeignKey('Fin_Invoice', on_delete=models.CASCADE,null=True,blank=True) 
-    invoice_number = models.CharField(max_length=50,null=True,blank=True)
-    credit_note_number = models.CharField(max_length=50,null=True,blank=True)
+    invoice = models.ForeignKey(Fin_Invoice, on_delete=models.CASCADE,null=True,blank=True) 
+    invoice_no = models.CharField(max_length=50,null=True,blank=True)
+    creditnote_no = models.CharField(max_length=50,null=True,blank=True)
+ 
     payment_method = models.CharField(max_length=50,null=True,blank=True)
-    cheque_number = models.CharField(max_length=50, blank=True, null=True)
-    upi_number = models.CharField(max_length=50, blank=True, null=True)
-    bank_account_number = models.CharField(max_length=50, blank=True, null=True)
-    description = models.CharField(max_length=255, blank=True, null=True)
-    document = models.FileField(upload_to='credit_notes/', blank=True, null=True)
-    sub_total = models.DecimalField(max_digits=10, decimal_places=2,null=True,blank=True)
+    cheque_no = models.CharField(max_length=50, blank=True, null=True)
+    upi_no = models.CharField(max_length=50, blank=True, null=True)
+    bank_acc_no = models.CharField(max_length=50, blank=True, null=True)
+ 
+    subtotal = models.DecimalField(max_digits=10, decimal_places=2,null=True,blank=True)
+    igst = models.FloatField(default=0.0, null=True, blank=True)
     cgst = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
     sgst = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
-    tax_amount_igst = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
-    shipping_charge = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    tax_amount = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
     adjustment = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
-    grand_total = models.DecimalField(max_digits=10, decimal_places=2,null=True,blank=True)
-    advanced_paid = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    shipping_charge = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    grandtotal = models.DecimalField(max_digits=10, decimal_places=2,null=True,blank=True)
+    paid_off = models.FloatField(default=0.0, null=True, blank=True)
     balance = models.DecimalField(max_digits=10, decimal_places=2,null=True,blank=True)
-    status = models.CharField(max_length=50,null=True,blank=True)
+    
+    note = models.TextField(null=True, blank=True)
+    file = models.FileField(upload_to='credit_notes', null=True, default=None)
+    status =models.CharField(max_length=150,default='Draft')
 
     def __str__(self):
         return self.credit_note_number
 
 class Fin_CreditNote_Items(models.Model):
-    credit_note = models.ForeignKey('Fin_CreditNote', related_name='items', on_delete=models.CASCADE,null=True,blank=True)
-    item = models.ForeignKey('Fin_Items', on_delete=models.CASCADE,null=True,blank=True)
-    hsn = models.CharField(max_length=50,null=True,blank=True)
-    quantity = models.DecimalField(max_digits=10, decimal_places=2,null=True,blank=True)
-    tax_rate = models.DecimalField(max_digits=10, decimal_places=2,null=True,blank=True)
-    discount = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
-    total = models.DecimalField(max_digits=10, decimal_places=2,null=True,blank=True)
+    CreditNote = models.ForeignKey(Fin_CreditNote, related_name='items', on_delete=models.CASCADE,null=True,blank=True)
+    Item = models.ForeignKey(Fin_Items,on_delete=models.SET_NULL, null=True)
+    hsn = models.IntegerField(null=True, blank=True)
+    quantity = models.IntegerField(default=0, null=True)
+    price = models.FloatField(default=0.0, null=True, blank=True)
+    total = models.FloatField(default=0.0, null=True, blank=True)
+    tax = models.CharField(max_length=100, null=True)
+    discount = models.FloatField(default=0.0, null=True, blank=True)
 
     def __str__(self):
         return f"{self.item} - {self.quantity}"
 
 class Fin_CreditNote_Reference(models.Model):
-    reference_number = models.CharField(max_length=50,null=True,blank=True)
-    company = models.ForeignKey('Fin_Company_Details', on_delete=models.CASCADE,null=True,blank=True)
-    login_details = models.ForeignKey('Fin_Login_Details', on_delete=models.CASCADE,null=True,blank=True)
+    Company = models.ForeignKey(Fin_Company_Details, on_delete=models.CASCADE,null=True,blank=True)
+    LoginDetails = models.ForeignKey(Fin_Login_Details, on_delete=models.CASCADE,null=True,blank=True)
+    reference_no = models.CharField(max_length=50,null=True,blank=True)
 
     def __str__(self):
         return self.reference_number
 
 class Fin_CreditNote_History(models.Model):
-    company = models.ForeignKey('Fin_Company_Details', on_delete=models.CASCADE,null=True,blank=True)
-    login_details = models.ForeignKey('Fin_Login_Details', on_delete=models.CASCADE,null=True,blank=True)
-    credit_note = models.ForeignKey('Fin_CreditNote', on_delete=models.CASCADE,null=True,blank=True)
+    Company = models.ForeignKey(Fin_Company_Details, on_delete=models.CASCADE,null=True,blank=True)
+    LoginDetails = models.ForeignKey(Fin_Login_Details, on_delete=models.CASCADE,null=True,blank=True)
+    CreditNote = models.ForeignKey(Fin_CreditNote, on_delete=models.CASCADE,null=True,blank=True)
     date = models.DateField(auto_now_add=True,null=True,blank=True)
-    action = models.CharField(max_length=50,null=True,blank=True)
+    action_choices = [
+        ('Created', 'Created'),
+        ('Edited', 'Edited'),
+    ]
+    action = models.CharField(max_length=20, null=True, blank = True, choices=action_choices)
 
     def __str__(self):
         return f"{self.credit_note} - {self.action}"
+    
+class Fin_CreditNote_Comments(models.Model):
+    Company = models.ForeignKey(Fin_Company_Details, on_delete=models.CASCADE, null=True)
+    CreditNote = models.ForeignKey(Fin_CreditNote,on_delete=models.CASCADE, null=True)
+    comments = models.CharField(max_length=500,null=True,blank=True)
+    

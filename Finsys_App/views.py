@@ -18329,48 +18329,66 @@ def stockadjToEmail(request,id):
 from django.shortcuts import render, redirect
 from .models import Fin_Login_Details, Fin_Company_Details, Fin_Staff_Details, Fin_CreditNote
 
+# def Fin_CreditNotes(request):
+#     if 's_id' in request.session:
+#         s_id = request.session['s_id']
+#         data = Fin_Login_Details.objects.get(id=s_id)
+#         if data.User_Type == 'Company':
+#             com = Fin_Company_Details.objects.get(Login_Id=s_id)
+#             credit_notes = Fin_CreditNote.objects.filter(Company=com)
+#             allmodules = Fin_Modules_List.objects.get(Login_Id = s_id,status = 'New')
+
+#         else:
+#             com = Fin_Staff_Details.objects.get(Login_Id=s_id).company_id
+#             credit_notes = Fin_CreditNote.objects.filter(Company=com)
+
+#         # Export credit notes details to Excel (Implement Excel export logic here if needed)
+
+#         # Filter credit notes based on search query
+    
+#         # Sort credit notes based on selected option
+#         sort_option = request.GET.get('sort', '')
+#         if sort_option == 'Name':
+#             credit_notes = credit_notes.order_by('customer__customer_name', 'credit_note_number')
+#         elif sort_option == 'CRN No':
+#             credit_notes = credit_notes.order_by('credit_note_number', 'customer__customer_name')
+
+#         # Filter credit notes based on status
+#         status_filter = request.GET.get('status', '')
+#         if status_filter == 'Draft':
+#             credit_notes = credit_notes.filter(status='Draft')
+#         elif status_filter == 'Saved':
+#             credit_notes = credit_notes.filter(status='Saved')
+
+#         context = {
+            
+#             'data': data,
+#             'credit_notes': credit_notes,
+#             'com': com,
+#             'allmodules':allmodules,
+#         }
+#         return render(request, 'company/Fin_CreditNotes.html', context)
+#     else:
+#         return redirect('login')  # Redirect to login page if session is not available
+          
+          
+
 def Fin_CreditNotes(request):
     if 's_id' in request.session:
         s_id = request.session['s_id']
-        data = Fin_Login_Details.objects.get(id=s_id)
-        if data.User_Type == 'Company':
-            com = Fin_Company_Details.objects.get(Login_Id=s_id)
-            credit_notes = Fin_CreditNote.objects.filter(company=com)
-            allmodules = Fin_Modules_List.objects.get(Login_Id = s_id,status = 'New')
-
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == "Company":
+            com = Fin_Company_Details.objects.get(Login_Id = s_id)
+            cmp = com
         else:
-            com = Fin_Staff_Details.objects.get(Login_Id=s_id).company_id
-            credit_notes = Fin_CreditNote.objects.filter(company=com)
-
-        # Export credit notes details to Excel (Implement Excel export logic here if needed)
-
-        # Filter credit notes based on search query
-    
-        # Sort credit notes based on selected option
-        sort_option = request.GET.get('sort', '')
-        if sort_option == 'Name':
-            credit_notes = credit_notes.order_by('customer__customer_name', 'credit_note_number')
-        elif sort_option == 'CRN No':
-            credit_notes = credit_notes.order_by('credit_note_number', 'customer__customer_name')
-
-        # Filter credit notes based on status
-        status_filter = request.GET.get('status', '')
-        if status_filter == 'Draft':
-            credit_notes = credit_notes.filter(status='Draft')
-        elif status_filter == 'Saved':
-            credit_notes = credit_notes.filter(status='Saved')
-
-        context = {
-            
-            'data': data,
-            'credit_notes': credit_notes,
-            'com': com,
-            'allmodules':allmodules,
-        }
-        return render(request, 'company/Fin_CreditNotes.html', context)
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id)
+            cmp = com.company_id
+        
+        allmodules = Fin_Modules_List.objects.get(company_id = cmp,status = 'New')
+        crdn = Fin_CreditNote.objects.filter(Company = cmp)
+        return render(request,'company/Fin_CreditNotes.html',{'allmodules':allmodules,'com':com, 'cmp':cmp,'data':data,'creditnotes':crdn})
     else:
-        return redirect('login')  # Redirect to login page if session is not available
-           
+       return redirect('/')           
             
 from django.shortcuts import render, redirect
 from .models import Fin_Login_Details, Fin_Company_Details, Fin_Staff_Details, Fin_Customers, Fin_Items, Fin_CreditNote, Fin_CreditNote_Items, Fin_CreditNote_Reference, Fin_CreditNote_History
@@ -18492,9 +18510,9 @@ def Fin_Add_CreditNote(request):
 
         # Fetching last CreditNote and assigning upcoming ref no as current + 1
         # Also check for if any bill is deleted and ref no is continuos w r t the deleted CreditNote
-        latest_est = Fin_CreditNote.objects.filter(Company = cmp).order_by('-id').first()
+        latest_crdn = Fin_CreditNote.objects.filter(Company = cmp).order_by('-id').first()
 
-        new_number = int(latest_est.reference_no) + 1 if latest_est else 1
+        new_number = int(latest_crdn.reference_no) + 1 if latest_crdn else 1
 
         if Fin_CreditNote_Reference.objects.filter(Company = cmp).exists():
             deleted = Fin_CreditNote_Reference.objects.get(Company = cmp)
@@ -18506,11 +18524,11 @@ def Fin_Add_CreditNote(request):
         # Finding next CRDN number w r t last CRDN number if exists.
         nxtCRDN = ""
         # lastCRDN = Fin_CreditNote.objects.filter(Company = cmp).last()
-        if latest_est:
-            est_no = str(latest_est.creditnote_no)
+        if latest_crdn:
+            crdn_no = str(latest_crdn.creditnote_no)
             numbers = []
             stri = []
-            for word in est_no:
+            for word in crdn_no:
                 if word.isdigit():
                     numbers.append(word)
                 else:
@@ -18552,7 +18570,7 @@ def Fin_Create_CreditNote(request):
             com = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
 
         if request.method == 'POST':
-            CRDNNo = request.POST['creditnote_no']
+            CRDNNo = request.POST['CreditNote_no']
 
             PatternStr = []
             for word in CRDNNo:
@@ -18586,9 +18604,7 @@ def Fin_Create_CreditNote(request):
                 place_of_supply = request.POST['place_of_supply'],
                 reference_no = request.POST['reference_number'],
                 creditnote_no = CRDNNo,
-                payment_terms = Fin_Company_Payment_Terms.objects.get(id = request.POST['payment_term']),
-                creditnote_date = request.POST['creditnote_date'],
-                exp_date = datetime.strptime(request.POST['exp_date'], '%d-%m-%Y').date(),
+                creditnote_date = request.POST['CreditNote_date'],
                 subtotal = 0.0 if request.POST['subtotal'] == "" else float(request.POST['subtotal']),
                 igst = 0.0 if request.POST['igst'] == "" else float(request.POST['igst']),
                 cgst = 0.0 if request.POST['cgst'] == "" else float(request.POST['cgst']),
@@ -18646,34 +18662,448 @@ def Fin_Create_CreditNote(request):
             return redirect(Fin_Add_CreditNote)
     else:
        return redirect('/')
+   
+   
+def Fin_checkCreditNoteNumber(request):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == "Company":
+            com = Fin_Company_Details.objects.get(Login_Id = s_id)
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
+        
+        CRDNNo = request.GET['CRDNNum']
+
+        nxtCRDNNo = ""
+        lastCreditNote = Fin_CreditNote.objects.filter(Company = com).last()
+        if lastCreditNote:
+            CRDN_no = str(lastCreditNote.estimate_no)
+            numbers = []
+            stri = []
+            for word in CRDN_no:
+                if word.isdigit():
+                    numbers.append(word)
+                else:
+                    stri.append(word)
+            
+            num=''
+            for i in numbers:
+                num +=i
+            
+            st = ''
+            for j in stri:
+                st = st+j
+
+            est_num = int(num)+1
+
+            if num[0] == '0':
+                if est_num <10:
+                    nxtCRDNNo = st+'0'+ str(est_num)
+                else:
+                    nxtCRDNNo = st+ str(est_num)
+            else:
+                nxtCRDNNo = st+ str(est_num)
+
+        PatternStr = []
+        for word in CRDNNo:
+            if word.isdigit():
+                pass
+            else:
+                PatternStr.append(word)
+        
+        pattern = ''
+        for j in PatternStr:
+            pattern += j
+
+        pattern_exists = checkCreditNoteNumberPattern(pattern)
+
+        if pattern !="" and pattern_exists:
+            return JsonResponse({'status':False, 'message':'CreditNote No. Pattern already Exists.!'})
+        elif Fin_CreditNote.objects.filter(Company = com, estimate_no__iexact = CRDNNo).exists():
+            return JsonResponse({'status':False, 'message':'CreditNote No. already Exists.!'})
+        elif nxtCRDNNo != "" and CRDNNo != nxtCRDNNo:
+            return JsonResponse({'status':False, 'message':'CreditNote No. is not continuous.!'})
+        else:
+            return JsonResponse({'status':True, 'message':'Number is okay.!'})
+    else:
+       return redirect('/')
+
+def checkCreditNoteNumberPattern(pattern):
+    models = [Fin_Invoice, Fin_Sales_Order, Fin_Recurring_Invoice, Fin_Purchase_Bill, Fin_Manual_Journal]
+
+    for model in models:
+        field_name = model.getNumFieldName(model)
+        if model.objects.filter(**{f"{field_name}__icontains": pattern}).exists():
+            return True
+    return False
+    
+
 
 
 from django.shortcuts import render, redirect
 from .models import Fin_Login_Details, Fin_Company_Details, Fin_Staff_Details, Fin_CreditNote
 
-def Fin_CreditNote_Overview(request, credit_note_id):
+def Fin_CreditNote_Overview(request, id):
     if 's_id' in request.session:
         s_id = request.session['s_id']
-        data = Fin_Login_Details.objects.get(id=s_id)
-        if data.User_Type == 'Company':
-            com = Fin_Company_Details.objects.get(Login_Id=s_id)
-            credit_note = Fin_CreditNote.objects.get(id=credit_note_id, company=com)
-        else:
-            com = Fin_Staff_Details.objects.get(Login_Id=s_id).company_id
-            credit_note = Fin_CreditNote.objects.get(id=credit_note_id, company=com)
+        data = Fin_Login_Details.objects.get(id = s_id)
 
-        # Implement logic to handle Convert button functionality
-        if credit_note.status == 'Draft':
-            # Show 'Convert' button and handle logic to change status to 'Saved' when clicked
-            show_convert_button = True
+        if data.User_Type == "Company":
+            com = Fin_Company_Details.objects.get(Login_Id = s_id)
+            cmp = com
         else:
-            show_convert_button = False
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id)
+            cmp = com.company_id
+        
+        allmodules = Fin_Modules_List.objects.get(company_id = cmp,status = 'New')
+        CreditNote = Fin_CreditNote.objects.get(id = id)
+        cmt = Fin_CreditNote_Comments.objects.filter(CreditNote = CreditNote)
+        hist = Fin_CreditNote_History.objects.filter(CreditNote = CreditNote).last()
+        CRDNItems = Fin_CreditNote_Items.objects.filter(CreditNote = CreditNote)
+        try:
+            created = Fin_CreditNote_History.objects.get(CreditNote = CreditNote, action = 'Created')
+        except:
+            created = None
+
+        return render(request,'company/Fin_CreditNote_Overview.html',{'allmodules':allmodules,'com':com,'cmp':cmp, 'data':data, 'creditnote':CreditNote,'crdnItems':CRDNItems, 'history':hist, 'comments':cmt, 'created':created})
+    else:
+       return redirect('/')
+   
+# def Fin_CreditNote_Overvie(request, id):
+#     if 's_id' in request.session:
+#         s_id = request.session['s_id']
+#         data = Fin_Login_Details.objects.get(id=s_id)
+#         if data.User_Type == 'Company':
+#             com = Fin_Company_Details.objects.get(Login_Id=s_id)
+#             credit_note = Fin_CreditNote.objects.get(id=id, company=com)
+#         else:
+#             com = Fin_Staff_Details.objects.get(Login_Id=s_id).company_id
+#             credit_note = Fin_CreditNote.objects.get(id=id, company=com)
+
+#         # Implement logic to handle Convert button functionality
+#         if credit_note.status == 'Draft':
+#             # Show 'Convert' button and handle logic to change status to 'Saved' when clicked
+#             show_convert_button = True
+#         else:
+#             show_convert_button = False
+
+#         context = {
+#             'credit_note': credit_note,
+#             'show_convert_button': show_convert_button,
+#             'company': com
+#         }
+#         return render(request, 'company/credit_note_overview.html', context)
+#     else:
+#         return redirect('login')  # Redirect to login page if session is not available
+
+def Fin_editCreditNote(request,id):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == "Company":
+            com = Fin_Company_Details.objects.get(Login_Id = s_id)
+            cmp = com
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id)
+            cmp = com.company_id
+
+        allmodules = Fin_Modules_List.objects.get(company_id = cmp,status = 'New')
+        crdn = Fin_CreditNote.objects.get(id = id)
+        crdnItms = Fin_CreditNote_Items.objects.filter(CreditNote = crdn)
+        cust = Fin_Customers.objects.filter(Company = cmp, status = 'Active')
+        itms = Fin_Items.objects.filter(Company = cmp, status = 'Active')
+        trms = Fin_Company_Payment_Terms.objects.filter(Company = cmp)
+        bnk = Fin_Banking.objects.filter(company = cmp)
+        lst = Fin_Price_List.objects.filter(Company = cmp, status = 'Active')
+        units = Fin_Units.objects.filter(Company = cmp)
+        acc = Fin_Chart_Of_Account.objects.filter(Q(account_type='Expense') | Q(account_type='Other Expense') | Q(account_type='Cost Of Goods Sold'), Company=cmp).order_by('account_name')
 
         context = {
-            'credit_note': credit_note,
-            'show_convert_button': show_convert_button,
-            'company': com
+            'allmodules':allmodules, 'com':com, 'cmp':cmp, 'data':data,'creditnote':crdn, 'crdnItems':crdnItms, 'customers':cust, 'items':itms, 'pTerms':trms,'list':lst,
+            'banks':bnk,'units':units, 'accounts':acc
         }
-        return render(request, 'company/credit_note_overview.html', context)
+        return render(request,'company/Fin_Edit_CreditNote.html',context)
     else:
-        return redirect('login')  # Redirect to login page if session is not available
+       return redirect('/')
+
+def Fin_updateCreditNote(reques, id):
+    if 's_id' in reques.session:
+        s_id = reques.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == "Company":
+            com = Fin_Company_Details.objects.get(Login_Id = s_id)
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
+        crdn = Fin_CreditNote.objects.get(id = id)
+        if reques.method == 'POST':
+            CRDNNo = reques.POST['creditnote_no']
+
+            PatternStr = []
+            for word in CRDNNo:
+                if word.isdigit():
+                    pass
+                else:
+                    PatternStr.append(word)
+            
+            pattern = ''
+            for j in PatternStr:
+                pattern += j
+
+            pattern_exists = checkCreditNoteNumberPattern(pattern)
+
+            if pattern !="" and pattern_exists:
+                res = f'<script>alert("CreditNote No. Pattern already Exists.! Try another!");window.history.back();</script>'
+                return HttpResponse(res)
+
+            if crdn.creditnote_no != CRDNNo and Fin_CreditNote.objects.filter(Company = com, creditnote_no__iexact = CRDNNo).exists():
+                res = f'<script>alert("CreditNote Number `{CRDNNo}` already exists, try another!");window.history.back();</script>'
+                return HttpResponse(res)
+
+            crdn.Customer = None if reques.POST['customerId'] == "" else Fin_Customers.objects.get(id = reques.POST['customerId'])
+            crdn.customer_email = reques.POST['customerEmail']
+            crdn.billing_address = reques.POST['bill_address']
+            crdn.gst_type = reques.POST['gst_type']
+            crdn.gstin = reques.POST['gstin']
+            crdn.place_of_supply = reques.POST['place_of_supply']
+
+            crdn.creditnote_no = CRDNNo
+            crdn.payment_terms = Fin_Company_Payment_Terms.objects.get(id = reques.POST['payment_term'])
+            crdn.creditnote_date = reques.POST['creditnote_date']
+            crdn.exp_date = datetime.strptime(reques.POST['exp_date'], '%d-%m-%Y').date()
+
+            crdn.subtotal = 0.0 if reques.POST['subtotal'] == "" else float(reques.POST['subtotal'])
+            crdn.igst = 0.0 if reques.POST['igst'] == "" else float(reques.POST['igst'])
+            crdn.cgst = 0.0 if reques.POST['cgst'] == "" else float(reques.POST['cgst'])
+            crdn.sgst = 0.0 if reques.POST['sgst'] == "" else float(reques.POST['sgst'])
+            crdn.tax_amount = 0.0 if reques.POST['taxamount'] == "" else float(reques.POST['taxamount'])
+            crdn.adjustment = 0.0 if reques.POST['adj'] == "" else float(reques.POST['adj'])
+            crdn.shipping_charge = 0.0 if reques.POST['ship'] == "" else float(reques.POST['ship'])
+            crdn.grandtotal = 0.0 if reques.POST['grandtotal'] == "" else float(reques.POST['grandtotal'])
+
+            crdn.note = reques.POST['note']
+
+            if len(reques.FILES) != 0:
+                crdn.file=reques.FILES.get('file')
+
+            crdn.save()
+
+            # Save creditnote items.
+
+            itemId = reques.POST.getlist("item_id[]")
+            itemName = reques.POST.getlist("item_name[]")
+            hsn  = reques.POST.getlist("hsn[]")
+            qty = reques.POST.getlist("qty[]")
+            price = reques.POST.getlist("price[]")
+            tax = reques.POST.getlist("taxGST[]") if reques.POST['place_of_supply'] == com.State else reques.POST.getlist("taxIGST[]")
+            discount = reques.POST.getlist("discount[]")
+            total = reques.POST.getlist("total[]")
+            crdn_item_ids = reques.POST.getlist("id[]")
+            CRDNItem_ids = [int(id) for id in crdn_item_ids]
+
+            creditnote_items = Fin_CreditNote_Items.objects.filter(CreditNote = crdn)
+            object_ids = [obj.id for obj in creditnote_items]
+
+            ids_to_delete = [obj_id for obj_id in object_ids if obj_id not in CRDNItem_ids]
+
+            Fin_CreditNote_Items.objects.filter(id__in=ids_to_delete).delete()
+            
+            count = Fin_CreditNote_Items.objects.filter(CreditNote = crdn).count()
+
+            if len(itemId)==len(itemName)==len(hsn)==len(qty)==len(price)==len(tax)==len(discount)==len(total)==len(CRDNItem_ids) and CRDNItem_ids and itemId and itemName and hsn and qty and price and tax and discount and total:
+                mapped = zip(itemId,itemName,hsn,qty,price,tax,discount,total,CRDNItem_ids)
+                mapped = list(mapped)
+                for ele in mapped:
+                    if int(len(itemId))>int(count):
+                        if ele[8] == 0:
+                            itm = Fin_Items.objects.get(id = int(ele[0]))
+                            Fin_CreditNote_Items.objects.create(CreditNote = crdn, Item = itm, hsn = ele[2], quantity = int(ele[3]), price = float(ele[4]), tax = ele[5], discount = float(ele[6]), total = float(ele[7]))
+                        else:
+                            itm = Fin_Items.objects.get(id = int(ele[0]))
+                            Fin_CreditNote_Items.objects.filter( id = int(ele[8])).update(CreditNote = crdn, Item = itm, hsn = ele[2], quantity = int(ele[3]), price = float(ele[4]), tax = ele[5], discount = float(ele[6]), total = float(ele[7]))
+                    else:
+                        itm = Fin_Items.objects.get(id = int(ele[0]))
+                        Fin_CreditNote_Items.objects.filter( id = int(ele[8])).update(CreditNote = crdn, Item = itm, hsn = ele[2], quantity = int(ele[3]), price = float(ele[4]), tax = ele[5], discount = float(ele[6]), total = float(ele[7]))
+            
+            # Save transaction
+                    
+            Fin_CreditNote_History.objects.create(
+                Company = com,
+                LoginDetails = data,
+                CreditNote = crdn,
+                action = 'Edited'
+            )
+
+            return redirect(Fin_CreditNote_Overview, id)
+        else:
+            return redirect(Fin_editCreditNote, id)
+    else:
+       return redirect('/')
+    
+
+def Fin_convert_CreditNote(request,id):
+    if 's_id' in request.session:
+
+        crdn = Fin_CreditNote.objects.get(id = id)
+        crdn.status = 'Saved'
+        crdn.save()
+        return redirect(Fin_CreditNote_Overview, id)
+
+def Fin_addCreditNoteComment(request, id):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == "Company":
+            com = Fin_Company_Details.objects.get(Login_Id = s_id)
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
+
+        crdn = Fin_CreditNote.objects.get(id = id)
+        if request.method == "POST":
+            cmt = request.POST['comment'].strip()
+
+            Fin_CreditNote_Comments.objects.create(Company = com, CreditNote = crdn, comments = cmt)
+            return redirect(Fin_CreditNote_Overview, id)
+        return redirect(Fin_CreditNote_Overview, id)
+    return redirect('/')
+
+def Fin_deleteCreditNoteComment(request,id):
+    if 's_id' in request.session:
+        cmt = Fin_CreditNote_Comments.objects.get(id = id)
+        crdnId = cmt.CreditNote.id
+        cmt.delete()
+        return redirect(Fin_CreditNote_Overview, crdnId)
+    
+def Fin_creditnoteHistory(request,id):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+
+        if data.User_Type == "Company":
+            com = Fin_Company_Details.objects.get(Login_Id = s_id)
+            cmp = com
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id)
+            cmp = com.company_id
+        
+        allmodules = Fin_Modules_List.objects.get(company_id = cmp,status = 'New')
+        crdn = Fin_CreditNote.objects.get(id = id)
+        his = Fin_CreditNote_History.objects.filter(CreditNote = crdn)
+
+        return render(request,'company/Fin_CreditNote_History.html',{'allmodules':allmodules,'com':com,'data':data,'history':his, 'creditnote':crdn})
+    else:
+       return redirect('/')
+    
+def Fin_deleteCreditNote(request, id):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        crdn = Fin_CreditNote.objects.get( id = id)
+        if data.User_Type == "Company":
+            com = Fin_Company_Details.objects.get(Login_Id = s_id)
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
+        
+        Fin_CreditNote_Items.objects.filter(CreditNote = crdn).delete()
+
+        # Storing ref number to deleted table
+        # if entry exists and lesser than the current, update and save => Only one entry per company
+        if Fin_CreditNote_Reference.objects.filter(Company = com).exists():
+            deleted = Fin_CreditNote_Reference.objects.get(Company = com)
+            if int(crdn.reference_no) > int(deleted.reference_no):
+                deleted.reference_no = crdn.reference_no
+                deleted.save()
+        else:
+            Fin_CreditNote_Reference.objects.create(Company = com, reference_no = crdn.reference_no)
+        
+        crdn.delete()
+        return redirect(Fin_creditnotes)
+
+def Fin_creditnotePdf(request,id):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == 'Company':
+            com = Fin_Company_Details.objects.get(Login_Id=s_id)
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
+        
+        crdn = Fin_CreditNote.objects.get(id = id)
+        itms = Fin_CreditNote_Items.objects.filter(CreditNote = crdn)
+    
+        context = {'creditnote':crdn, 'crdnItems':itms,'cmp':com}
+        
+        template_path = 'company/Fin_CreditNote_Pdf.html'
+        fname = 'CreditNote_' + crdn.creditnote_no
+
+        # Create a Django response object, and specify content_type as pdftemp_
+        response = HttpResponse(content_type='application/pdf')
+        response['Content-Disposition'] =f'attachment; filename = {fname}.pdf'
+        # find the template and render it.
+        template = get_template(template_path)
+        html = template.render(context)
+
+        # create a pdf
+        pisa_status = pisa.CreatePDF(
+        html, dest=response)
+        # if error then show some funny view
+        if pisa_status.err:
+            return HttpResponse('We had some errors <pre>' + html + '</pre>')
+        return response
+    else:
+        return redirect('/')
+
+def Fin_shareCreditNoteToEmail(request,id):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        data = Fin_Login_Details.objects.get(id = s_id)
+        if data.User_Type == 'Company':
+            com = Fin_Company_Details.objects.get(Login_Id=s_id)
+        else:
+            com = Fin_Staff_Details.objects.get(Login_Id = s_id).company_id
+        
+        crdn = Fin_CreditNote.objects.get(id = id)
+        itms = Fin_CreditNote_Items.objects.filter(CreditNote = crdn)
+        try:
+            if request.method == 'POST':
+                emails_string = request.POST['email_ids']
+
+                # Split the string by commas and remove any leading or trailing whitespace
+                emails_list = [email.strip() for email in emails_string.split(',')]
+                email_message = request.POST['email_message']
+                # print(emails_list)
+            
+                context = {'creditnote':crdn, 'crdnItems':itms,'cmp':com}
+                template_path = 'company/Fin_CreditNote_Pdf.html'
+                template = get_template(template_path)
+
+                html  = template.render(context)
+                result = BytesIO()
+                pdf = pisa.pisaDocument(BytesIO(html.encode("ISO-8859-1")), result)
+                pdf = result.getvalue()
+                filename = f'CreditNote_{crdn.creditnote_no}'
+                subject = f"CreditNote_{crdn.creditnote_no}"
+                email = EmailMessage(subject, f"Hi,\nPlease find the attached CreditNote for - #-{crdn.creditnote_no}. \n{email_message}\n\n--\nRegards,\n{com.Company_name}\n{com.Address}\n{com.State} - {com.Country}\n{com.Contact}", from_email=settings.EMAIL_HOST_USER, to=emails_list)
+                email.attach(filename, pdf, "application/pdf")
+                email.send(fail_silently=False)
+
+                messages.success(request, 'CreditNote details has been shared via email successfully..!')
+                return redirect(Fin_CreditNote_Overview,id)
+        except Exception as e:
+            print(e)
+            messages.error(request, f'{e}')
+            return redirect(Fin_CreditNote_Overview, id)
+
+def Fin_attachCreditNoteFile(request, id):
+    if 's_id' in request.session:
+        s_id = request.session['s_id']
+        crdn = Fin_CreditNote.objects.get(id = id)
+
+        if request.method == 'POST' and len(request.FILES) != 0:
+            crdn.file = request.FILES.get('file')
+            crdn.save()
+
+        return redirect(Fin_CreditNote_Overview, id)
+    else:
+        return redirect('/')
+

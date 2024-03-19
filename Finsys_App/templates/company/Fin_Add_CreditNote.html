@@ -7,14 +7,14 @@
 
 
 
-<form action="{% url 'Fin_CreditNote_Create' %}" method="post" enctype="multipart/form-data" autocomplete="off">
+<form action="{% url 'Fin_Create_CreditNote' %}" method="post" enctype="multipart/form-data" autocomplete="off">
 {% csrf_token %}
     <div class="page-content">
             <!--breadcrumb-->
         <div class="card radius-15">
             <div class="card-body">
                 <div class="card-title">
-                    <center><h3 class="mb-0" id="invnumb">CREDIT NOTE</h3></center>
+                    <center><h3 class="mb-0" id="crdnnumb">CREDIT NOTE</h3></center>
                 </div>
                 <hr/>
             </div>
@@ -65,9 +65,9 @@
                       <div class="row">
                           <div class="col-md-4 mt-3">
                               <div class="d-flex">
-                                  <label class="">Credit Note No.</label><span class="text-danger ml-3" id="EstNOErr"></span>
+                                  <label class="">Credit Note No.</label><span class="text-danger ml-3" id="CRDNNOErr"></span>
                               </div>
-                              <input type="text" class="form-control" name="CreditNote_no"  id="CreditNoteNumber" style="background-color: #43596c;" placeholder="{{ESTNo}}" required>
+                              <input type="text" class="form-control" name="CreditNote_no"  id="CreditNoteNumber" style="background-color: #43596c;" placeholder="{{CRDNNo}}" required>
                           </div>
                           <div class="col-md-4 mt-3">
                               <label class="">Reference Number</label>
@@ -304,7 +304,7 @@
                               </div>
                           </div>
                       </div>
-                      <!-- <div class="row">
+                      <div class="row">
                           <div class="col-md-7"></div>
                           <div class="col-md-5 table-responsive-md mt-3 " id="CreditNoteItemsTablePaid" style="background-color:rgba(0,0,0,.4); border: 1px solid rgba(128, 128, 128, 0.6); margin-left: -2vh;">
                               <div class="p-3">
@@ -320,7 +320,7 @@
                                   </div>
                               </div>
                           </div>
-                      </div> -->
+                      </div>
           
                   
                       <div class="row">
@@ -348,6 +348,85 @@
         </div>
     </div>
 </form>
+
+<!-- New Payment Term Modal -->
+
+<div class="modal fade" id="newPaymentTerm">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content" style="background-color: #213b52;">
+            <div class="modal-header">
+                <h5 class="m-3">New Payment Term</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="card p-3">
+                    <form method="post" id="newTermForm">
+                        {% csrf_token %}
+                        <div class="row mt-2">
+                            <div class="col-6">
+                                <label for="name">Term Name</label>
+                                <input type="text" name="term_name" id="termName" class="form-control w-100">
+                            </div>
+                            <div class="col-6">
+                                <label for="name">Days</label>
+                                <input type="number" name="days" id="termDays" class="form-control w-100" min="0" step="1">
+                            </div>
+                        </div>
+                        <div class="row mt-4">
+                            <div class="col-4"></div>
+                            <div class="col-4 d-flex justify-content-center">
+                                <button class="btn btn-outline-secondary text-grey w-75" data-dismiss="modal" type="submit" id="savePaymentTerm">Save</button>
+                            </div>
+                            <div class="col-4"></div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>   
+    </div>
+</div>
+
+<!-- New Cust Payment Term Modal -->
+
+<div class="modal fade" id="newCustomerPaymentTerm">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content" style="background-color: #213b52;">
+            <div class="modal-header">
+                <h5 class="m-3">New Customer Payment Term</h5>
+                <button type="button" class="close" data-toggle="modal" data-target="#newCustomer" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="card p-3">
+                    <form method="post" id="newCustomerPaymentTermForm">
+                        {% csrf_token %}
+                        <div class="row mt-2">
+                            <div class="col-6">
+                                <label for="name">Term Name</label>
+                                <input type="text" name="term_name" id="custTermName" class="form-control w-100">
+                            </div>
+                            <div class="col-6">
+                                <label for="name">Days</label>
+                                <input type="number" name="days" id="custTermDays" class="form-control w-100" min="0" step="1">
+                            </div>
+                        </div>
+                        <div class="row mt-4">
+                            <div class="col-4"></div>
+                            <div class="col-4 d-flex justify-content-center">
+                                <button class="btn btn-outline-secondary text-grey w-75" data-toggle="modal" data-target="#newCustomer" type="button" id="saveCustomerPaymentTerm">Save</button>
+                            </div>
+                            <div class="col-4"></div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>   
+    </div>
+</div>
+
 
 <!-- New Customer Modal -->
 
@@ -735,6 +814,7 @@
     </div>
 </div>
 
+
 <!-- Item Unit Create Modal -->
 
 <div class="modal fade" id="createNewUnit">
@@ -767,7 +847,97 @@
         </div>   
     </div>
 </div>
-   
+
+
+<!-- Account Create Modal -->
+
+<div class="modal fade" tabindex="-1" role="dialog" id="createNewAccount">
+    <div class="modal-dialog modal-xl" role="document">
+        <div class="modal-content" style="background-color: #213b52;">
+            <div class="modal-header">
+                <h5 class="m-3">New Account</h5>
+                <button type="button" class="close" data-toggle="modal" data-target="#newItem" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="card p-3">
+                    <form method="post" id="newAccountForm">
+                        {% csrf_token %}
+                        <div class="row mt-2 mb-2">
+                            <div class="col-md-6">
+                                <div class="row mt-2">
+                                    <div class="col-12">
+                                        <label for="acctyp">Account Type</label>
+                                        <input type="text" value="Assets" id="acctype" name="acctype" hidden>
+                                        <select name="account_type" id="Account_type" class="custom-select-md form-control w-100"  onchange="AccountTypeChange(this)" required>
+                                            <optgroup label="Expense" style="background-color: rgb(47 81 111);">
+                                                <option value="Expense"> Expense </option>
+                                                <option value="Cost Of Goods Sold"> Cost Of Goods Sold </option>
+                                                <option value="Other Expense"> Other Expense </option>
+                                            </optgroup>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="row mt-2">
+                                    <div class="col-12">
+                                        <label for="name">*Name</label>
+                                        <input name="account_name" id="accountName" required class="custom-select-md form-control w-100">
+                                    </div>
+                                </div>
+                                <div class="row mt-1" id="subAccountCheck" style="display: none;">
+                                    <div class="col-12">
+                                        <div class="form-check">
+                                            <input type="checkbox" name="subAccountCheckBox" class="form-check-input" id="subAccountCheckBox">
+                                            <label class="form-check-label" for="subAccountCheckBox">Make this a sub-account</label>
+                                            <span><i class="fa fa-question-circle" data-toggle="tooltip" data-placement="bottom" title="Select this option if you are creating a sub-account."></i></span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row mt-2" id="parentAccountValue" style="display: none;">
+                                    <div class="col-12">
+                                        <label for="parentAccount">Parent Account</label>
+                                        <select name="parent_account" id="parentAccount" class="custom-select-md form-control w-100">
+        
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="row mt-2">
+                                    <div class="col-12">
+                                        <label for="acc_code">Account Code</label>
+                                        <input type="text" name="account_code" id="account_code" class="form-control">
+                                    </div>
+                                </div>
+                                <div class="row mt-2">
+                                    <div class="col-12">
+                                        <label>Description</label>
+                                        <textarea class="form-control" rows="3" id="description" name="description" placeholder="Max. 500 Characters"></textarea>
+                                    </div>
+                                </div>
+                                
+                            </div>
+                            <div class="col-md-6 mt-4"> 
+                                <div id="acnt-desc" class="form-control" name="detype" style="font-size: small;  height: fit-content;"></div>
+                            </div>
+                        </div>
+                            
+                        <div class="mt-3">
+                            <div class="row">
+                                <div class="col-md-4"></div>
+                                <div class="col-md-4 d-flex justify-content-center">
+                                    <button type="button" data-toggle="modal" data-target="#newItem" id="saveNewAccount" class="btn btn-outline-info">Save</button>
+                                </div>
+                                <div class="col-md-4"></div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>   
+    </div>
+</div>
+
+
 <!-- New Item Modal -->
 
 <div class="modal fade" id="newItem">
@@ -964,57 +1134,202 @@
 
         
     
-    <script src="{% static 'assets/plugins/select2/js/select2.min.js' %}"></script>    
+    <!-- <script src="{% static 'assets/plugins/select2/js/select2.min.js' %}"></script>    
      <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
     <script src="//code.jquery.com/jquery-1.11.1.min.js"></script>
-    <script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
-
+    <script src="https://code.jquery.com/jquery-3.1.1.min.js"></script> -->
 
     <script>
 
-        function reloadCustomer(title,fName,lName) {
-            const fullName = title+' '+fName+' '+lName
-            $.ajax({
-                url: "{% url 'Fin_getCustomers' %}",
-                type: "GET",
-                dataType: "json",
-                data: {},
-    
-                success: function(data) {
-                    console.log('Ajax Response ->',data);
-                    var custDrpDwn = $('#cust_drop');
-                    custDrpDwn.empty();
-                    custDrpDwn.append(`<li class="dropdown-item customers-options" onclick="getCustomerDetails('','')">Select Customer</li>`);
-    
-                    $.each(data, function (key, value) {
-                        const customerDetails = `${value[1]} ${value[2]} ${value[3]}`;
-                        const ID = `${value[0]}`
-    
-                        if(customerDetails == fullName){
-                            getCustomerDetails(value[0], customerDetails)
-                        }
-                        const listItem = $(`
-                            <li class="dropdown-item customers-options" onclick="getCustomerDetails('${ID}', '${customerDetails}')">${customerDetails}</li>`
-                        );
-                        custDrpDwn.append(listItem);
-                    });
-                    console.log('Customers RELOADED');
-    
-                },
-                error: function(xhr, status, error) {
-                    console.error(xhr.responseText);
+        function checkCustomer(){
+            var customers = $('#cust_drop').children();
+            var search_text = $("#customer").val().toLowerCase();
+            var cust = false
+            customers.each(function(){
+                if($(this).text().toLowerCase() == search_text){
+                    cust = true;
                 }
+            })
     
-            });
-            // refreshCustomerDetails();
+            if(! cust){
+                $('#custErr').text('Select a customer..');
+                // $("#customer").val("");
+                customers.each(function(){
+                    $(this).show()
+                })
+            }
+            console.log('name checking');
+            return cust;
+        }
     
-            if ($('#newCustomerPaymentTerm').hasClass('show')){
-                $('#newCustomerPaymentTerm').modal('toggle');
+        function filterCustomers(){
+            var options = $('#cust_drop').children();
+            var search_text = $("#customer").val().toLowerCase();
+            options.each(function(){
+                if($(this).text().toLowerCase().includes(search_text)){
+                    $(this).show()
+                }else{
+                    $(this).hide()
+                }
+            })
+        }
+    
+        function getCustomerDetails(custId, name){
+            $('#customer').val(name)
+            console.log('name',name);
+            if($('#customer').val() != ""){
+                $('#custErr').text('');
+                $.ajax({
+                    type : 'POST',
+                    url: "{% url 'Fin_getInvoiceCustomerData' %}",
+                    data: {
+                        id: custId,
+                        csrfmiddlewaretoken: '{{ csrf_token }}',
+                    },
+                    
+                    success: function(data){
+                        console.log('AJAX-Response-->',data);
+                        document.getElementById('customerId').value = data.id;
+                        document.getElementById('customerEmail').value = data.email;
+                        document.getElementById('placeOfSupply').value = data.shipState;
+                        document.getElementById('gstType').value = data.gstType;
+                        document.getElementById('billAddress').value = data.street + ',' + data.city + '\n' + data.state + '\n' + data.country  + '\n' + data.pincode ;
+                        if(data.gstin){
+                            document.getElementById('gstInDisplay').style.display = 'block';
+                            document.getElementById('gstin').value = data.gstNo;
+                        }else{
+                            document.getElementById('gstInDisplay').style.display = 'none';
+                            document.getElementById('gstin').value = '';
+                        }
+                        refreshTax();
+                    }
+                });
+            }else{
+                document.getElementById('customerEmail').value = "";
+                document.getElementById('placeOfSupply').value = "";
+                document.getElementById('gstType').value = "";
+                document.getElementById('billAddress').value ="";
+                document.getElementById('gstin').value = "";
+                $('#custErr').text('Select a customer..');
             }
         }
-
-
+    
+        $(document).on("click","#savePaymentTerm",function(){
+            var trm = $('#termName').val();
+            var dys = $("#termDays").val();
+            if (trm !="" && dys !=""){
+                $.ajax({
+                    type : 'POST',
+                    url:"{% url 'Fin_newCustomerPaymentTerm' %}",
+                    data:{
+                        'term' : trm,
+                        'days' : dys,
+                        csrfmiddlewaretoken: '{{ csrf_token }}'
+                    },
+                    
+                    success: function(response) {
+                        if(response.status){
+                            document.getElementById("newTermForm").reset();
+                            
+                            var dropdown = $('#paymentTerm');
+                            dropdown.empty();
+                            dropdown.append(`<option value="" selected>Choose</option>`);
+                            $.each(response, function(key, value) {
+                                for(let i=0; i<value.length; i++){
+                                    if(value[i].name == trm){
+                                        dropdown.append($('<option selected></option>').attr('text',value[i].days).text(value[i].name).val(value[i].id))
+                                    }else{
+                                        dropdown.append($('<option></option>').attr('text',value[i].days).text(value[i].name).val(value[i].id))
+                                    }   
+                                }
+                            });
+    
+                            findExpDate();
+    
+                        }else{
+                            alert("Something went wrong.!")
+                        }
+                    },         
+                });
+            }
+            else{
+                alert('Invalid')
+            }
+        });
+    
+        function findExpDate(){
+            var days = parseInt($('#paymentTerm').find(":selected").attr('text'))
+            order_date =new Date($('#creditnoteDate').val())
+            console.log(days);
+            console.log(order_date);
+            if (!isNaN(order_date.getTime())) {
+    
+                const endDate = new Date(order_date);
+                endDate.setDate(endDate.getDate() + days);
+    
+                const isoString = endDate.toISOString(); 
+                const day = isoString.slice(8, 10);
+                const month = isoString.slice(5, 7);
+                const year = isoString.slice(0, 4);
+    
+                const formattedDate = `${day}-${month}-${year}`;
+    
+                document.getElementById("expDate").value = formattedDate;
+            } else {
+                    alert("Please enter a valid date.");
+                    $('#paymentTerm').val('')
+            }
+        }
+    
+        $('#paymentTerm').on('change', function () {
+            findExpDate();
+        });
+    
+        $('#creditnoteDate').on('change', function() {
+            findExpDate();
+        });
+    
+        function refreshTax(){
+            var cmpState = $('#cmpstate').val();
+            var plc = $('#placeOfSupply').val();
+            if(cmpState == plc){
+                $('.tax_ref').css('display','none');
+                $('.tax_ref_gst').css('display','block');
+                document.getElementById('taxamountCGST').style.display = 'flex';
+                document.getElementById('taxamountSGST').style.display = 'flex';
+                document.getElementById('taxamountIGST').style.display = 'none';
+            }else{
+                $('.tax_ref').css('display','none');
+                $('.tax_ref_igst').css('display','block');
+                document.getElementById('taxamountCGST').style.display = 'none';
+                document.getElementById('taxamountSGST').style.display = 'none';
+                document.getElementById('taxamountIGST').style.display = 'flex';
+            }
+        }
+    
+        $(document).on('change','#creditnoteNumber', function() {
+            $('#CRDNNOErr').text('');
+            var crdn_num = $(this).val();
+            if(crdn_num != ""){
+                console.log(crdn_num);
+                $.ajax({
+                    type: "GET",
+                    url: "{% url 'Fin_checkCreditNoteNumber' %}",
+                    data: {
+                        CRDNNum : crdn_num,
+                    },
+                    success: function (response) {
+                        if (response.status){
+                            $('#CRDNNOErr').text('');
+                        }else{
+                            $('#CRDNNOErr').text(response.message);
+                        }
+                    }
+                })
+            }
+        });
+    
         $(document).ready(function() {
             $("#paymentMethod").change(function() {
                 var x=$('#paymentMethod').val();
@@ -1063,117 +1378,534 @@
                 }
             });
         });
-
+    
+        $(document).on('change','#placeOfSupply',function()   {
+            refreshTax();
+            calc();
+        });
+    
+        function filterFunction(id){
+            var options = $('#'+ $("#"+id).next().attr('id')).children();
+            var search_text = $("#"+id).val().toLowerCase();
+            options.each(function(){
+                if($(this).text().toLowerCase().includes(search_text)){
+                    $(this).show()
+                }else{
+                    $(this).hide()
+                }
+            })
+        }
         
-        $(document).on('change',function(){
-            var paid_off=$('#paid').val();
-           var total=$('#grandtotal').val();
-           var bal=total-paid_off;
-           $('#balance').val(bal);
+        function getItemDetails(inpId, value){
+            var itm = value;
+            var exists = false;
+            var plc = $('#placeOfSupply').val();
+            console.log('clicked',value);
+    
+            $('#items-table-body tr').each(function () {
+                var html = $(this).html();
+                if (html != '') {
+                    var itemName = $(this).find('.item-display').val();
+                    console.log(itm,itemName);
+                    if(itemName == itm){
+                        exists = true;
+                        console.log('exists',exists);
+                    }
+                }
+            });
+            console.log('status',exists);
+    
+            if(!exists){
+                if(plc != ""){
+                    var n = inpId.slice(4);
+                    $.ajax({
+                    url: "{% url 'Fin_getInvItemDetails' %}",
+                    type : 'GET',
+                    data:{
+                        item : value,
+                        listId : "",
+                        csrfmiddlewaretoken: '{{ csrf_token }}'
+                        },
+                    
+                    success: function(response) {
+                        if (response.status){
+                            $('#'+inpId).val(value);
+                            document.getElementById('itemId'+n).value = response.id;
+                            document.getElementById('hsn'+n).value = response.hsn;
+                            document.getElementById('price'+n).value = response.sales_rate;
+                            document.getElementById('taxGST'+n).value = response.gst;
+                            document.getElementById('taxIGST'+n).value = response.igst;
+                            refreshTax();
+                            calc();
+                        }
+                    },
+                    });
+                }else{
+                    alert('Select Place of Supply.!')
+                }
+            }else{
+                alert('Item already exists in the CREDIT NOTE, choose another or change quantity.!')
+            }
+    
+        }
+    
+    
+        $(document).ready(function(){
+            $('#items-table-body').on('keyup change', function () {
+                refreshTax();
+                calc();
+            });
+        });
+    
+        $(document).ready(function(){
+            $(document).on("blur", ".disc", function(){
+                if($(this).val() != ""){
+                }else{
+                $(this).val(0);
+                calc();
+                }
+            }); 
+        });
+    
+    // calculation---------------------------
+
+    function calc() {
+        $('#CreditNoteItemsTable tbody tr').each(function () {
+            var html = $(this).html();
+            if (html != '') {
+                var qty = $(this).find('.qty').val();
+                if($('#applyPriceList').prop('checked')){
+                    var price = $(this).find('.priceListPrice').val();
+                }else{
+                    var price = $(this).find('.price').val();
+                }
+                var dis = $(this).find('.disc').val();
+                var bc = $("#placeOfSupply").val();
+                var compstate = $("#cmpstate").val();
+
+                if(bc==compstate){
+                    var tax = $(this).find('.tax_ref_gst').val();
+                }
+                else{
+                    var tax = $(this).find('.tax_ref_igst').val();
+                }
+                $(this).find('.total').val((parseFloat(qty) * parseFloat(price)) - parseFloat(dis));
+                $(this).find('.itemTaxAmount').val(((qty * price)-dis) * (tax / 100));
+                calc_total();
+            }
+        });
+    }
+
+    function calc_total() {
+            
+        total = 0;
+        $('.total').each(function () {
+            total += parseFloat($(this).val());
+        });
+        taxamount = 0;
+        $('.itemTaxAmount').each(function () {
+            taxamount += parseFloat($(this).val());
+        });
+        $('#sub_total').val(total.toFixed(2));
+        $('#tax_amount').val(taxamount.toFixed(2));
+        var ship = parseFloat($("#ship").val());
+        var adj_val = parseFloat($('#adj').val())
+        var gtot = taxamount + total + ship + adj_val;
+
+        $('#grandtotal').val(gtot.toFixed(2));
+        
+        var adv_val = parseFloat($('#advance').val())
+        var bal = gtot - adv_val
+        $('#balance').val(bal.toFixed(2));
+        splitTax();
+    }
+
+    function splitTax(){
+        var bc = $("#placeOfSupply").val();
+        var compstate = $("#cmpstate").val();
+        d=0
+        if (bc == compstate  ) {
+            var gst = taxamount/2
+            $('#cgstAmount').val(parseFloat(gst.toFixed(2)));
+            $('#sgstAmount').val(parseFloat(gst.toFixed(2)));
+            $('#igstAmount').val(parseFloat(d.toFixed(2)));
+        }else{
+            $('#igstAmount').val(taxamount.toFixed(2));
+            $('#cgstAmount').val(d.toFixed(2));
+            $('#sgstAmount').val(d.toFixed(2));
+        }   
+    }
+
+    $(document).ready(function(){
+        $(document).on('keyup',"#ship",function(){
+            var subtot = $('#sub_total').val();
+            var tax = $('#tax_amount').val();
+            var sh = $("#ship").val();
+            var adj = $("#adj").val();
+            $('#grandtotal').val((parseFloat(subtot)+parseFloat(tax)+parseFloat(sh)+parseFloat(adj)).toFixed(2));
+            $('#balance').val((parseFloat($("#grandtotal").val())-parseFloat($("#advance").val())).toFixed(2))
+            
+        });
+
+        $(document).on("blur", "#ship", function(){
+            if($(this).val() != ""){
+            }else{
+            $(this).val(0);
+            calc_total();
+            }
+        }); 
+    });
+
+    $(document).ready(function(){
+        $(document).on("keyup", "#adj", function(){
+            var subtot = $('#sub_total').val();
+            var tax = $('#tax_amount').val();
+            var sh = $("#ship").val();
+            var adj = $("#adj").val();
+            $('#grandtotal').val((parseFloat(subtot)+parseFloat(tax)+parseFloat(sh)+parseFloat(adj)).toFixed(2));
+            $('#balance').val((parseFloat($("#grandtotal").val())-parseFloat($("#advance").val())).toFixed(2))
+        });
+
+        $(document).on("blur", "#adj", function(){
+            if($(this).val() != ""){
+            }else{
+            $(this).val(0);
+            calc_total();
+            }
+        }); 
+    });
+
+    $(document).ready(function() {
+        $("#advance").on('keyup change',function() {
+            var tot_val = $('#grandtotal').val();
+            var adv_val = $('#advance').val();
+            if(adv_val !=""){
+                if (parseFloat(tot_val) < parseFloat(adv_val)){
+                    $('#advance').val(parseFloat(tot_val))
+                    $('#balance').val(0);
+                    alert("Advance Greater than Total Amount")
+        
+                }else{
+                    var bal = parseFloat(tot_val) - parseFloat(adv_val)
+                    $('#balance').val(bal.toFixed(2));
+                }
+            }else{
+                $('#balance').val(parseFloat(tot_val));
+            }
             
         })
-    </script>
-    <script>
-       function check_credit_note_number(){
+    });
 
-            var str=document.getElementById('credit_no').value;
-
-            var ref_no=document.getElementById('referenceNumber').value;
-            var ref_len=ref_no.length;
-            var x=ref_len
-            var sliced_string=str.slice(-x,)
-
-            if(parseInt(ref_no) == parseInt(sliced_string))
-            {
-                document.getElementById('credit_span').style.color="green";
-                document.getElementById('credit_span').innerHTML="consicutive number";
-
-            }
-            else{
-                document.getElementById('credit_span').style.color="red";
-                document.getElementById('credit_span').innerHTML="not consicutive number";
+    
+        // Tabel row add, clone, remove
+    
+        function refreshIndex(){
+            var slNo = 1;
+            var $rows = $("#items-table-body tr");
+    
+            for (var i = 0; i < $rows.length; i++) {
+                $rows.eq(i).attr('id', 'tab_row'+slNo)
+                $rows.eq(i).find('[id]').each(function() {
+                    var oldId = $(this).attr('id');
+                    var newId = oldId.replace(/\d+/, slNo);
+                    $(this).attr('id', newId );
+                });
+    
+                $rows.eq(i).find('.nnum').text(slNo);
+                slNo++;
             }
         }
-    </script>
-
-    <script>
-
+    
+        $(document).on('click','.remove_row',function(){
+            var row_id = $(this).attr("id");
+            $('#tab_row'+row_id+'').remove();
+            refreshIndex();
+            calc();
+        });
+    
         
-
-    // <script>
-        
-
-    //         function saveAsDraftDialog() 
-    //         {
-
-    //         var frm = document.getElementById("forms");
-    //         frm.action = ("")
-    //         }
-    //         function saveDialog() 
-    //         {
-
-    //         var frm = document.getElementById("forms");
-    //         frm.action = ("")
-    //         }
-    // </script>
-    <script>
-        function show_fields()
-        {
-            var option=document.getElementById('select_payment').value;
-            if(option == 'Cash'){
-                document.getElementById('acc_no_label').style.display='none';
-                document.getElementById('acc_no').style.display='none';
-                document.getElementById('cheque_no_label').style.display='none';
-                document.getElementById('cheque_no').style.display='none';
-                document.getElementById('upi_id_label').style.display='none';
-                document.getElementById('upi_id').style.display='none';
-            }
-            else if(option == 'Cheque'){
-                document.getElementById('acc_no_label').style.display='none';
-                document.getElementById('acc_no').style.display='none';
-                document.getElementById('cheque_no_label').style.display='block';
-                document.getElementById('cheque_no').style.display='block';
-                document.getElementById('upi_id_label').style.display='none';
-                document.getElementById('upi_id').style.display='none';
-
-            }
-            else if(option == 'UPI'){
-                document.getElementById('acc_no_label').style.display='none';
-                document.getElementById('acc_no').style.display='none';
-                document.getElementById('cheque_no_label').style.display='none';
-                document.getElementById('cheque_no').style.display='none';
-                document.getElementById('upi_id_label').style.display='block';
-                document.getElementById('upi_id').style.display='block';
-            }
-            else if(option == 'no_option'){
-                document.getElementById('acc_no_label').style.display='none';
-                document.getElementById('acc_no').style.display='none';
-                document.getElementById('cheque_no_label').style.display='none';
-                document.getElementById('cheque_no').style.display='none';
-                document.getElementById('upi_id_label').style.display='none';
-                document.getElementById('upi_id').style.display='none';
-            }
-            else
-            {
+    
+    $(document).ready(function(){
+       $('#add').click(function(){
+        var roinc = $("#items-table-body tr").length;
+        roinc++
+        $('#items-table-body').append(
+            `
+            <tr id='tab_row${roinc}'>
+                <td class="nnum" style="text-align: center;">${roinc}</td>
+                <td style="width: 20%;">
+                    <div class="d-flex">
+                        <div class="w-100">
+                            <div class="p-0 border-0 bg-none position-relative drop-box" style="display: block;">
+                                <input required type="text" id="item${roinc}" value="" name="item_name[]" class="dropdown-toggle form-control item-display" onkeyup="filterFunction($(this).attr('id'))"  data-toggle="dropdown" aria-expanded="false" placeholder="Items.." autocomplete="off">
+                                <ul class="dropdown-menu w-100 items-available position-absolute" id="menu${roinc}"  style="overflow-y: auto; height: fit-content;max-height: 40vh;"> 
+                                    {% for i in items %}
+                                    <li class="dropdown-item items-options" style="cursor: pointer;" onclick="getItemDetails($(this).parent().prev().attr('id'),$(this).html())">{{i.name}}</li>
+                                    {% endfor %}
+                                </ul>
+                                
+                            </div>
+                        </div>
+                        <a href="#">
+                            <button type="button" class="btn btn-outline-secondary ml-1" data-target="#newItem" data-toggle="modal">+</button>
+                        </a>
+                    </div>
                 
-                document.getElementById('acc_no_label').style.display='block';
-                document.getElementById('acc_no').style.display='block';
-                document.getElementById('cheque_no_label').style.display='none';
-                document.getElementById('cheque_no').style.display='none';
-                document.getElementById('upi_id_label').style.display='none';
-                document.getElementById('upi_id').style.display='none';
+                </td>
+                <td>
+                    <input type="hidden" name="item_id[]" id="itemId${roinc}">
+                    <input type="text" name='hsn[]' id="hsn${roinc}" placeholder='HSN Code' class="form-control HSNCODE" style="background-color: #43596c; color: white;" readonly />
+                </td>
+                <td >
+                    <input type="number" name='qty[]' id="qty${roinc}"  class="form-control qty" step=0 min=1 style="background-color: #43596c; color: white;" value=0 required/>
+                </td>
+                <td>
+                    <input type="number" name='price[]' id="price${roinc}" class="form-control price" step="0.00" min="0" style="background-color: #43596c; color: white;" value=0 readonly />
+                </td>
+                
+                <td style="width: 13%;">
+                    <!-- <input type="text"  id="select_tax" placeholder="Tax Rate" class="form-control seltax d-flex"> -->
+                    <select name='taxGST[]' id="taxGST${roinc}" class="form-control tax_ref tax_ref_gst" style="display: block;" onchange="taxchange(this.id)">
+                        <option selected disabled hidden>Select GST</option>
+                        <option value=28 >28.0% GST</option>
+                        <option value=18 >18.0% GST</option>
+                        <option value=12 >12.0% GST</option>
+                        <option value=5 >05.0% GST</option>
+                        <option value=3 >03.0% GST</option>
+                        <option value=0 >0.0% GST</option>
+                    </select>
+                    <select name='taxIGST[]' id="taxIGST${roinc}" class="form-control tax_ref tax_ref_igst" style="display: none;" onchange="taxchange(this.id)">
+                        <option selected disabled hidden >Select IGST</option>
+                        <option value=28 >28.0% IGST</option>
+                        <option value=18 >18.0% IGST</option>
+                        <option value=12 >12.0% IGST</option>
+                        <option value=5 >05.0% IGST</option>
+                        <option value=3 >03.0% IGST</option>
+                        <option value=0 >0.0% IGST</option>
+                    </select>
+                    <div class="mt-1" style=" text-align: center;color: red;" ><span id="invalidtax${roinc}" style="display: none;"> Invalid Tax %</span> </div>    
+                </td>
+                <td >
+                    <input type="number" name='discount[]'  placeholder='Enter Discount' id="disc${roinc}" value=0 class="form-control disc" step=0 min=0 style="background-color: #43596c;  color: white;"  />
+                </td>
+    
+                <td><input type="number" name='total[]' id="total${roinc}" class="form-control total" value=0 readonly style="background-color: #43596c; color: white;" /></td>
+                <td style="display: none;"><input type="hidden" id="taxamount${roinc}" class="form-control itemTaxAmount" /></td>
+                <td>
+                    <button type="button" id="${roinc}" class="btn btn-danger remove_row px-2 py-1 mx-1 fa fa-close" title="Remove Row"> </button>
+                </td>
+            </tr>
+            `);
+        });
+      });
+     
+      
+        function validateForm() {
+            var length = $("#items-table-body tr").length;
+            if(length < 1){
+                alert('Add atleast 1 item..!')
+                return false;
+            }
+    
+            var customers = $('#cust_drop').children();
+            var search_text = $("#customer").val().toLowerCase();
+            console.log('customerssss---');
+            console.log(customers);
+            var cust = false;
+            customers.each(function(){
+                if($(this).text().toLowerCase() == search_text){
+                    cust = true;
+                }
+                console.log('Cust--',$(this).text().toLowerCase());
+                console.log('search--',search_text);
+                console.log('cust status--',cust);
+            })
+    
+            if(! cust){
+                $('#custErr').text('Select a customer..');
+                $("#customer").val("");
+                alert('Choose a valid customer from the list..')
+                customers.each(function(){
+                    $(this).show()
+                })
+                return false;
+            }
+    
+            
+        }
+    
+      
+       </script>
+    
+       <!-- NEW CUSTOMER -> Scripts -->
+    
+       <script>
+        function placeShipAddress() {
+            var chkbtn = document.getElementById('shipAddress');
+            if (chkbtn.checked == true) {
+                document.getElementById('shipstreet').value = document.getElementById('street').value;
+                document.getElementById('shipcity').value = document.getElementById('city').value;
+                document.getElementById('shippinco').value = document.getElementById('pinco').value;
+                document.getElementById('shipcountry').value = document.getElementById('country').value;
+                document.getElementById('shipState').value = document.getElementById('state').value;
+            } else {
+                document.getElementById('shipstreet').value = '';
+                document.getElementById('shipcity').value = '';
+                document.getElementById('shippinco').value = '';
+                document.getElementById('shipcountry').value = '';
+                document.getElementById('shipState').value = '';
+                
             }
         }
-    </script>
-
-    <script>
+    
+        $(document).on("click","#saveCustomerPaymentTerm",function(){
+            var trm = $('#custTermName').val();
+            var dys = $("#custTermDays").val();
+            if (trm !="" && dys !=""){
+                $.ajax({
+                    type : 'POST',
+                    url:"{% url 'Fin_newCustomerPaymentTerm' %}",
+                    data:{
+                        'term' : trm,
+                        'days' : dys,
+                        csrfmiddlewaretoken: '{{ csrf_token }}'
+                    },
+                    
+                    success: function(response) {
+                        if(response.status){
+                            document.getElementById("newCustomerPaymentTermForm").reset();
+                            
+                            var dropdown = $('#custPaymentTerms');
+                            dropdown.empty();
+                            dropdown.append(`<option value="" selected>Choose</option>`);
+                            $.each(response, function(key, value) {
+                                for(let i=0; i<value.length; i++){
+                                    if(value[i].name == trm){
+                                        dropdown.append($('<option selected></option>').text(value[i].name).val(value[i].id))
+                                    }else{
+                                        dropdown.append($('<option></option>').text(value[i].name).val(value[i].id))
+                                    }   
+                                }
+                            });
+    
+                        }else{
+                            alert("Something went wrong.!")
+                        }
+                    },         
+                });
+            }else{
+                alert('Invalid')
+            }
+        });
+    
+        $(document).ready(function() {
+            $("#custGstType").change(function() {
+                var x=$('#custGstType').val();
+                if(x == "Unregistered Business" || x == 'Overseas' || x == 'Consumer'){
+                    $(".gstrow").removeClass('d-block');
+                    $(".gstrow").addClass('d-none');
+                    $('#custGstIN').prop('required',false);
+                }else {
+                    $('#custGstIN').prop('required',true);
+                    $(".gstrow").removeClass('d-none');
+                    $(".gstrow").addClass('d-block');
+                }
+            });
+        });
+    
+            
+        function showMessage(input) {
+            const gstin = input.value;
+    
+            if (gstin.length === 15) {
+                // document.getElementById("message").textContent = "Please wait, validating GSTIN format...";
+                setTimeout(() => checkgst(input), 1000);  // Wait for a second and then validate GSTIN
+            } else {
+                document.getElementById("message").textContent = "";
+            }
+        }
+    
+        function checkgst(element) {
+            var gstinput = element.value;
+            var gstregexp = "[0-9]{2}[a-zA-Z]{5}[0-9]{4}[a-zA-Z]{1}[1-9A-Za-z]{1}[Z]{1}[0-9a-zA-Z]{1}";
+    
+            if (gstinput.length === 15) {
+                if (gstinput.match(gstregexp)) {
+                    document.getElementById('warngst').innerHTML = '';
+                    checkCustomerGSTIN(gstinput)
+                } else {
+                    document.getElementById('warngst').innerHTML = 'Please provide a valid GST Number';
+                    alert('Please provide a valid GST Number');
+                }
+            }
+                else {
+                document.getElementById('warngst').innerHTML = 'Please provide a valid GST Number';
+                alert('Please provide a valid GST Number');
+            }
+        }
+    
+        function checkpan(element) {
+            var paninput = element.value;
+            var panregexp = ["[a-zA-Z]{5}[0-9]{4}[a-zA-Z]{1}"]
+            if (paninput.match(panregexp)) {
+                document.getElementById('warnpan').innerHTML = '';
+                checkCustomerPAN(paninput)
+            } else {
+                document.getElementById('warnpan').innerHTML = 'Please provide a valid PAN Number';
+                alert('Please provide a valid PAN Number')
+            }
+        }
+    
+        function checkweb(element) {
+            var webinput = element.value;
+            var webregexp = "www."
+            if (webinput.startsWith(webregexp)) {
+                document.getElementById('warnweb').innerHTML = '';
+            } else {
+                document.getElementById('warnweb').innerHTML = 'Please provide a valid Website Address';
+                alert('Please provide a valid Website Address')
+            }
+        }
+    
+        function checkphone(element) {
+            var phoneinput = element.value;
+            var phoneregexp = /^\d{10}$/;
+            if (phoneinput.match(phoneregexp)) {
+                document.getElementById('warnphone').innerHTML = '';
+                checkCustomerPhone(phoneinput)
+            } else {
+                document.getElementById('warnphone').innerHTML = 'Please provide a valid Phone Number';
+                alert('Please provide a valid Phone Number')
+            }
+        }
+    
+        function checkemail(element) {
+            var emailinput = element.value;
+            var emailregexp = /^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$/;
+            if (emailinput.match(emailregexp)) {
+                document.getElementById('warnemail').innerHTML = '';
+                checkCustomerEmail(emailinput)
+            } else {
+                document.getElementById('warnemail').innerHTML = 'Please provide a valid Email ID';
+                alert('Please provide a valid Email id')
+            }
+        }
+    
         $(document).on('change', '#openbalance',function () {
             openbal = $("#openbalance").val()
             if($('#bal').val()=='credit'){
                 if(openbal.slice(0,1) != '-'){
-                    document.getElementById("openbalance").value = "-"+openbal
+                    if(parseFloat(openbal) != 0){
+                        document.getElementById("openbalance").value = "-"+openbal
+                    }else{
+                        document.getElementById("openbalance").value = openbal
+                    }
                 }else{
-                    document.getElementById("openbalance").value = openbal
+                    if(parseFloat(openbal) != 0){
+                        document.getElementById("openbalance").value = openbal
+                    }else{
+                        document.getElementById("openbalance").value = -1 * parseFloat(openbal)
+                    }
                 }
             }else{
                 document.getElementById("openbalance").value = openbal
@@ -1185,12 +1917,627 @@
             if(openbal != ""){
                 if($('#bal').val()=='credit'){
                     openbal = $("#openbalance").val()
-                    document.getElementById("openbalance").value = "-"+openbal
+                    if (parseFloat(openbal) != 0){
+                        document.getElementById("openbalance").value = "-"+openbal
+                    }else{
+                        document.getElementById("openbalance").value = openbal
+                    }
                 }else{
                     openbal = $("#openbalance").val()
-                    document.getElementById("openbalance").value = openbal.slice(1,)
+                    document.getElementById("openbalance").value = -1*(parseFloat(openbal))
                 }
             }
         });
+    
+        $(document).ready(function(){
+            $('#lastName').on('change',()=>{
+                var fName = $('#firstName').val().replace(/\d/g, '');
+                var lName = $('#lastName').val().replace(/\d/g, '');
+                if(fName !="" && lName !=""){
+                    checkCustomerName(fName,lName)
+                }else{
+                    alert('Please enter a valid Full Name.!')
+                    return false
+                }
+            });
+    
+            $('#firstName').on('change',()=>{
+                var fName = $('#firstName').val().replace(/\d/g, '');
+                var lName = $('#lastName').val().replace(/\d/g, '');
+                if(fName !="" && lName !=""){
+                    checkCustomerName(fName,lName)
+                }else if(fName == "" && lName !=""){
+                    alert('Please enter a valid First Name.!')
+                }
+    
+            })
+        });
+    
+        function checkCustomerName(fname,lname){
+            if (fname != "" && lname !=""){
+                $.ajax({
+                    type : 'POST',
+                    url:"{% url 'Fin_checkCustomerName' %}",
+                    data:{
+                        'fname' : fname,
+                        'lname' : lname,
+    
+                        csrfmiddlewaretoken: '{{ csrf_token }}'
+                    },
+                    
+                    success: function(response) {
+                        if(response.is_exist){
+                            alert(response.message)
+                        }
+                    },         
+                });
+            }
+        }
+    
+        function checkCustomerGSTIN(gstin){
+            var gstNo = gstin;
+            if (gstNo != ""){
+                $.ajax({
+                    type : 'POST',
+                    url:"{% url 'Fin_checkCustomerGSTIN' %}",
+                    data:{
+                        'gstin' : gstNo,
+                        csrfmiddlewaretoken: '{{ csrf_token }}'
+                    },
+                    
+                    success: function(response) {
+                        if(response.is_exist){
+                            alert(response.message)
+                        }
+                    },         
+                });
+            }
+        }
+    
+        function checkCustomerPAN(pan){
+            var panNo = pan;
+            if (panNo != ""){
+                $.ajax({
+                    type : 'POST',
+                    url:"{% url 'Fin_checkCustomerPAN' %}",
+                    data:{
+                        'pan' : panNo,
+                        csrfmiddlewaretoken: '{{ csrf_token }}'
+                    },
+                    
+                    success: function(response) {
+                        if(response.is_exist){
+                            alert(response.message)
+                        }
+                    },         
+                });
+            }
+        }
+    
+        function checkCustomerPhone(phone){
+            var phoneNo = phone;
+            if (phoneNo != ""){
+                $.ajax({
+                    type : 'POST',
+                    url:"{% url 'Fin_checkCustomerPhone' %}",
+                    data:{
+                        'phone' : phoneNo,
+                        csrfmiddlewaretoken: '{{ csrf_token }}'
+                    },
+                    
+                    success: function(response) {
+                        if(response.is_exist){
+                            alert(response.message)
+                        }
+                    },         
+                });
+            }
+        }
+    
+        function checkCustomerEmail(email){
+            var custEmail = email;
+            if (custEmail != ""){
+                $.ajax({
+                    type : 'POST',
+                    url:"{% url 'Fin_checkCustomerEmail' %}",
+                    data:{
+                        'email' : custEmail,
+                        csrfmiddlewaretoken: '{{ csrf_token }}'
+                    },
+                    
+                    success: function(response) {
+                        if(response.is_exist){
+                            alert(response.message)
+                        }
+                    },         
+                });
+            }
+        }
+    
+        $(document).on("click", "#newCustomerSave", function(){
+            var title = $('#title').val();
+            var fName = $('#firstName').val();
+            var lName = $('#lastName').val();
+            var placeSupply = $('#custPlaceOfSupply').val();
+            var gstType = $("#custGstType").val();
+            var gstIN = $("#custGstIN").val();
+            var panNo = $("#panNo").val();
+            var Email = $("#custEmail").val();
+            var Mob = $("#custMobile").val();
+            var street = $("#street").val();
+            var city = $("#city").val();
+            var state = $("#state").val();
+            var pin = $("#pinco").val();
+            var country = $("#country").val();
+    
+            if(gstType != "Unregistered Business" && gstType != 'Overseas' && gstType != 'Consumer' && gstIN == ""){
+                alert('Fill all required fields..!')
+                return
+            }
+    
+            if(fName != "" && lName != "" && placeSupply != "" && gstType != "" && panNo != "" && Email != "" && Mob != "" && street != "" && city != "" && state != "" && pin != "" && country != ""){
+                $.ajax({
+                    type : 'POST',
+                    url:"{% url 'Fin_createInvoiceCustomer' %}",
+                    data:{
+                        title : title,
+                        first_name : fName,
+                        last_name : lName,
+                        company_name : $("#companyName").val(),
+                        location : $("#location").val(),
+                        place_of_supply : placeSupply,
+                        gst_type : gstType,
+                        gstin : gstIN,
+                        pan_no : panNo,
+                        price_list :$('#priceList').val(),
+                        payment_terms :$('#custPaymentTerms').val(),
+                        open_balance : $("#openbalance").val(),
+                        balance_type : $("#bal").val(),
+                        credit_limit : $("#creditLimit").val(),
+                        email : Email,
+                        website :$("#custWebsite").val(),
+                        mobile : Mob,
+                        street : street,
+                        city : $("#city").val(),
+                        state : $("#state").val(),
+                        country : $("#country").val(),
+                        pincode : $("#pinco").val(),
+                        shipstreet : $("#shipstreet").val(),
+                        shipcity : $("#shipcity").val(),
+                        shipstate : $("#shipState").val(),
+                        shipcountry : $("#shipcountry").val(),
+                        shippincode : $("#shippinco").val(),
+                        csrfmiddlewaretoken: '{{ csrf_token }}',
+                    },
+    
+                    success: function(response) {
+                        if(response.status){
+                            console.log("AJAX Success",response)
+                            document.getElementById("newCustomerForm").reset();
+    
+    
+                            reloadCustomer(title,fName,lName);
+                        }else{
+                            alert(response.message)
+                        }
+                    },
+                });
+            }else{
+                alert('Fill all required fields..!')
+                return
+            }
+        });
+    
+        function reloadCustomer(title,fName,lName) {
+            const fullName = title+' '+fName+' '+lName
+            $.ajax({
+                url: "{% url 'Fin_getCustomers' %}",
+                type: "GET",
+                dataType: "json",
+                data: {},
+    
+                success: function(data) {
+                    console.log('Ajax Response ->',data);
+                    var custDrpDwn = $('#cust_drop');
+                    custDrpDwn.empty();
+                    custDrpDwn.append(`<li class="dropdown-item customers-options" onclick="getCustomerDetails('','')">Select Customer</li>`);
+    
+                    $.each(data, function (key, value) {
+                        const customerDetails = `${value[1]} ${value[2]} ${value[3]}`;
+                        const ID = `${value[0]}`
+    
+                        if(customerDetails == fullName){
+                            getCustomerDetails(value[0], customerDetails)
+                        }
+                        const listItem = $(`
+                            <li class="dropdown-item customers-options" onclick="getCustomerDetails('${ID}', '${customerDetails}')">${customerDetails}</li>`
+                        );
+                        custDrpDwn.append(listItem);
+                    });
+                    console.log('Customers RELOADED');
+    
+                },
+                error: function(xhr, status, error) {
+                    console.error(xhr.responseText);
+                }
+    
+            });
+            // refreshCustomerDetails();
+    
+            if ($('#newCustomerPaymentTerm').hasClass('show')){
+                $('#newCustomerPaymentTerm').modal('toggle');
+            }
+        }
+    </script>
+    
+    <!-- Add item -> scripts -->
+    
+    <script>
+    
+        function ShowHideDiv(track) {
+            var inventorytrack = document.getElementById("inventorytrack");
+            inventorytrack.style.display = track.checked ? "flex" : "none";
+        }
+    
+        function ShowHideDivi(inclusive) {
+            var inter = document.getElementById("intrastateFiled");
+            inter.style.display = inclusive.checked ? "block" : "none";
+        }
+    
+        function validateHSN() {
+            var hsnField = document.getElementById("hsnField");
+            var errorText = document.getElementById("hsnError");
+            var hsnValue = hsnField.value;
+    
+            if (hsnValue.length < 6) {
+                errorText.innerText = "HSN must contain at least 6 digits";
+                hsnField.setCustomValidity("HSN must contain at least 6 digits");
+                hsnField.style.borderColor = "red";
+            } else {
+                errorText.innerText = "";
+                hsnField.setCustomValidity(""); 
+                hsnField.style.borderColor = ""; 
+            }
+        }
+    
+        function showdiv() {
+            document.getElementById("taxableDiv").style.display = "flex";
+        }
+        
+        function hidediv() {
+            document.getElementById("taxableDiv").style.display = "none";
+        }
+    
+        $(document).on("click","#saveItemUnit",function(){
+            var name = $("#unit_name").val();
+            if (name !=""){
+                $.ajax({
+                    type : 'POST',
+                    url:"{% url 'Fin_saveItemUnit' %}",
+                    data:{
+                        'name' : name,
+                        csrfmiddlewaretoken: '{{ csrf_token }}'
+                    },
+                    
+                    success: function(response) {
+                        if(response.status){
+                            document.getElementById("newUnitForm").reset();
+                            reloadUnits();
+                        }else{
+                            alert(response.message)
+                        }
+                    },         
+                });
+            }
+            else{
+                alert('Invalid')
+            }
+        });
+    
+        function reloadUnits() {
+            $.ajax({
+                url: "{% url 'Fin_getItemUnits' %}",
+                type: "GET",
+                dataType: "json",
+                data: $(this).serialize(),
+                csrfmiddlewaretoken: '{{ csrf_token }}',
+    
+                success: function(data) {
+                    console.log("AJAX Success - Dropdown Data:", data);
+                    var dropdown = $('#itemUnit');
+                    dropdown.empty()
+                    dropdown.append(`<option selected disabled value="">Choose...</option>`);
+                    $.each(data, function(key, value) {
+                        for(let i=0; i<value.length; i++){
+                            dropdown.append($('<option></option>').attr('class', 'text-uppercase').text(value[i].name))
+                        }
+                    });
+                },
+                error: function(xhr, status, error) {
+                    console.error(xhr.responseText);
+                }
+            });
+        }
+    
+        // Account add modal js
+    
+        $(document).ready(function(){
+            var Acnt_desc = document.getElementById("acnt-desc");
+            Acnt_desc.innerHTML=`
+                <b>Expense</b> <br>Reflects expenses incurred for running normal business operations, such as :<br/>
+                <ul>
+                    <li>1.Advertisements and Marketing</li>
+                    <li>2.Business Travel Expenses</li>
+                    <li>3.License Fees</li>
+                    <li>4.Utility Expenses</li>
+                </ul>`;
+    
+                var selectedValue = $('#Account_type').val();
+                $.ajax({
+                    type : 'GET',
+                    url:"{% url 'Fin_checkAccounts' %}",
+                    data:{
+                        type : selectedValue,
+                    },
+                    
+                    success: function(response) {
+                        if(response.status){
+                            $('#subAccountCheck').css('display','block');
+                            var dropdown = $('#parentAccount');
+                            dropdown.empty();
+                            dropdown.append(`<option selected disabled value="">--Choose--</option>`)
+                            $.each(response, function(key, value) {
+                                for(let i=0; i<value.length; i++){
+                                    dropdown.append($('<option></option>').text(value[i].name).val(value[i].name))
+                                }
+                            });
+                        }else{
+                            
+                        }
+                    },         
+                });
+        })
+        
+        function AccountTypeChange(selectBox) {
+            var selectElement = document.getElementById("Account_type");
+            var selectedValue = selectElement.value;
+            var Acnt_desc = document.getElementById("acnt-desc");
+            var acctype = document.getElementById("acctype");
+    
+            switch(selectedValue) {
+                case "Expense":
+                    Acnt_desc.innerHTML=`
+                        <b>Expense</b> <br>Reflects expenses incurred for running normal business operations, such as :<br/>
+                        <ul>
+                            <li>1.Advertisements and Marketing</li>
+                            <li>2.Business Travel Expenses</li>
+                            <li>3.License Fees</li>
+                            <li>4.Utility Expenses</li>
+                        </ul>`;
+                        acctype.value="Expense"
+                    break;
+                case "Cost Of Goods Sold":
+                    Acnt_desc.innerHTML=`
+                        <b>Expense</b> <br>This indicates the direct costs attributable to the production of the goods sold by a company such as:<br/>
+                        <ul>
+                            <li>1.Material and Labor costs</li>
+                            <li>2.Cost of obtaining raw materials</li>
+                        </ul>`;
+                        acctype.value="Expense"
+                    break;
+                case "Other Expense":
+                    Acnt_desc.innerHTML=`
+                        <b>Expense</b> <br>Track miscellaneous expenses incurred for activities other than primary business operations or create additional accounts to track default expenses like insurance or contribution towards charity.<br/>`;
+                        acctype.value="Expense"
+                    break;
+                default:
+                Acnt_desc.innerHTML=`<b>Account Type</b> <br>Select an account type..<br/>`;
+            }
+    
+            if(selectedValue !=""){
+                $('#subAccountCheck').css('display','none')
+                $('#subAccountCheckBox').prop('checked', $('#subAccountCheckBox').prop('checked') ? false : false);
+                $('#parentAccountValue').css('display','none');
+    
+                $.ajax({
+                    type : 'GET',
+                    url:"{% url 'Fin_checkAccounts' %}",
+                    data:{
+                        type : selectedValue,
+                    },
+                    
+                    success: function(response) {
+                        if(response.status){
+                            $('#subAccountCheck').css('display','block');
+                            var dropdown = $('#parentAccount');
+                            dropdown.empty();
+                            dropdown.append(`<option selected disabled value="">--Choose--</option>`)
+                            $.each(response, function(key, value) {
+                                for(let i=0; i<value.length; i++){
+                                    dropdown.append($('<option></option>').text(value[i].name).val(value[i].name))
+                                }
+                            });
+                        }else{
+                            
+                        }
+                    },         
+                });
+    
+            }
+    
+    }
+    
+    $(document).ready(function() {
+        $('#subAccountCheckBox').change(function() {
+            if ($(this).is(':checked')) {
+                $('#parentAccountValue').css('display','block');
+                $('#parentAccount').prop('required',true);
+            } else {
+                $('#parentAccountValue').css('display','none');
+                $('#parentAccount').prop('required',false);
+            }
+        });
+    });
+    
+    $(document).on("click","#saveNewAccount",function(){
+        var name = $("#accountName").val();
+        var type = $("#Account_type").val();
+        var code = $("#account_code").val();
+        var desc = $("#description").val();
+        var subAcc = $("#subAccountCheckBox").prop('checked');
+        var parentAcc = $("#parentAccount").val();
+        console.log(name,type,code,desc,subAcc,parentAcc);
+    
+        if(subAcc && (parentAcc =="" || parentAcc == undefined) ){
+            alert('Select a parent account.!')
+            return;
+        }
+    
+        if (name !="" && type !="" ){
+            $.ajax({
+                type : 'POST',
+                url:"{% url 'Fin_createNewAccountFromItems' %}",
+                data:{
+                    'account_name' : name,
+                    'account_type' : type,
+                    'account_code' : code,
+                    'subAccountCheckBox' : subAcc,
+                    'parent_account' : parentAcc,
+                    'description' : desc,
+                    csrfmiddlewaretoken: '{{ csrf_token }}'
+                },
+                
+                success: function(response) {
+                    if(response.status){
+                        document.getElementById("newAccountForm").reset();
+                        
+                        var dropdown = $('#purchaseAccount');
+                        dropdown.empty();
+                        dropdown.append(`<option value="" disabled>--Choose--<option/>`);
+                        $.each(response, function(key, value) {
+                            for(let i=0; i<value.length; i++){
+                                if(value[i].name == name){
+                                    dropdown.append($('<option selected></option>').text(value[i].name).val(value[i].name))
+                                }else{
+                                    dropdown.append($('<option></option>').text(value[i].name).val(value[i].name))
+                                }   
+                            }
+                        });
+    
+                    }else{
+                        alert("Something went wrong.!")
+                    }
+                },         
+            });
+        }
+        else{
+            alert('Account name or Type cannot be blank.!')
+        }
+    });
+    
+    $(document).on("click","#saveNewItem",function(){
+        var name = $("#itemName").val();
+        var type = $("#itemType").val();
+        var unit = $("#itemUnit").val();
+        var hsn = $("#hsnField").val();
+        if($('#inclusive').prop('checked') || $('#check').prop('checked')){
+            if($('#inclusive').prop('checked')){
+                var tax = 'taxable'
+            }else{
+                var tax = 'non taxable'
+            }
+        }else{
+            alert("Should select any of tax reference")
+            return
+        }
+    
+        if (name !="" && type !="" && unit != "" && hsn != "" && tax != ""){
+            $.ajax({
+                type : 'POST',
+                url:"{% url 'Fin_createInvoiceItem' %}",
+                data:{
+                    'name' : name,
+                    'type' : type,
+                    'unit' : unit,
+                    'hsn' : hsn,
+                    'taxref' : tax,
+                    'intra_st' : $("#intraStateTax").val(),
+                    'inter_st' : $("#interStateTax").val(),
+                    'pcost' : $("#purprice").val(),
+                    'pur_account' : $("#purchaseAccount").val(),
+                    'pur_desc' : $("#purchaseDescription").val(),
+                    'salesprice' : $("#saleprice").val(),
+                    'sale_account' : $("#salesAccount").val(),
+                    'sale_desc' : $("#salesDescription").val(),
+                    'invacc' : $("#invAcc").val(),
+                    'stock' : $("#stockOnHand").val(),
+                    'stock_rate' : $("#stockRate").val(),
+                    'min_stock' : $("#minStock").val(),
+                    csrfmiddlewaretoken: '{{ csrf_token }}'
+                },
+                
+                success: function(response) {
+                    if(response.status){
+                        console.log("AJAX Success",response)
+                        document.getElementById("newItemForm").reset();
+    
+                        reloadItems();
+                    }else{
+                        alert(response.message)
+                    }
+                },         
+            });
+        }
+        else{
+            alert('Fill all required fields.!')
+            return;
+        }
+    });
+    
+    function reloadItems() {
+        $.ajax({
+            url: "{% url 'Fin_getItems' %}",
+            type: "GET",
+            dataType: "json",
+            data: {},
+            csrfmiddlewaretoken: '{{ csrf_token }}',
+    
+            success: function(data) {
+                $('#items-table-body tr').each(function () {
+                var currentRow = $(this);
+                var html = currentRow.html();
+                
+                if (html !== '') {
+                    currentRow.find(".items-available").find("li").remove();
+    
+                    $.each(data, function(key, value) {
+                        for (let i = 0; i < value.length; i++) {
+                            currentRow.find(".items-available").append(`
+                                <li class="dropdown-item items-options" style="cursor: pointer;" onclick="getItemDetails($(this).parent().prev().attr('id'), '${value[i]}')">
+                                    ${value[i]}
+                                </li>`
+                            );
+                        }
+                    });
+    
+                    console.log('Success');
+                }
+            });
+    
+    
+            },
+            error: function(xhr, status, error) {
+                console.error(xhr.responseText);
+            }
+    
+        });
+        if ($('#createNewAccount').hasClass('show')){
+            $('#createNewAccount').modal('toggle');
+        }
+    
+        if ($('#createNewUnit').hasClass('show')){
+            $('#createNewUnit').modal('toggle');
+        }
+    }
     </script>
 {% endblock %}
