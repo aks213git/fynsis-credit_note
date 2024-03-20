@@ -164,6 +164,28 @@
                               <input type="text" class="form-control" name="bnk_id" id="bnk_id" style="background-color: #43596c;" readonly>
                           </div>
                       </div>
+                      <div class="row">
+                        <div class="col-md-4">
+                                <label for="invoiceType">Invoice Type</label>
+                                <select class="form-control" id="invoiceType" name="invoiceType">
+                                    <option value="Regular">Regular Invoice</option>
+                                    <option value="Recurring">Recurring Invoice</option>
+                                </select>
+                            
+                        </div>
+                        <div class="col-md-4">
+                                <label for="invoiceNumber">Invoice/Recurring Invoice Number</label>
+                                <select class="form-control" id="invoiceNumber" name="invoiceNumber">
+                                    <!-- Options will be dynamically added here -->
+                                </select>
+                            
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                    </div>
+                    
+                    
           
                       <div class="row clearfix ">
                           <div class="col-md-12 table-responsive-md mt-3">
@@ -1139,7 +1161,32 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
     <script src="//code.jquery.com/jquery-1.11.1.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.1.1.min.js"></script> -->
-
+<script>
+    $(document).ready(function() {
+        $('#customerId').change(function() {
+            var customerId = $(this).val();
+            var invoiceType = $('#invoiceType').val(); // Get selected invoice type
+            $.ajax({
+                url: '/get-invoice-numbers/', // URL to fetch invoice numbers
+                type: 'GET',
+                data: {
+                    'customerId': customerId,
+                    'invoiceType': invoiceType
+                },
+                success: function(response) {
+                    $('#invoiceNumber').empty(); // Clear existing options
+                    $.each(response.invoiceNumbers, function(key, value) {
+                        $('#invoiceNumber').append($('<option>').text(value).attr('value', value));
+                    });
+                },
+                error: function(xhr, errmsg, err) {
+                    console.log(errmsg);
+                }
+            });
+        });
+    });
+    
+</script>
     <script>
 
         function checkCustomer(){
